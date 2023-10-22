@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shapes Drawing</title>
+</head>
+<body>
+    <canvas id="myCanvas" width="500" height="500"></canvas>
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Draw a line
+        ctx.beginPath();
+        ctx.moveTo(50, 50);
+        ctx.lineTo(150, 50);
+        ctx.stroke();
+
+        // Draw a point
+        ctx.fillRect(200, 50, 2, 2);
+
+        // Draw a circle
+        ctx.beginPath();
+        ctx.arc(100, 200, 50, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Draw a rectangle
+        ctx.strokeRect(200, 200, 100, 50);
+    </script>
+</body>
+</html>
