@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Random Variates Distribution</title>
+  </head>
+  <body>
+    <h1>Random Variates Distribution Histogram</h1>
+    <canvas id="histogramCanvas"></canvas>
+    <script>
+      function generateUniformRandomVariates(N, k) {
+        const counts = Array(k).fill(0);
+ 
+        for (let i = 0; i < N; i++) {
+          const randomValue = Math.random();
+          const interval = Math.floor(randomValue * k);
+          counts[interval]++;
+        }
+ 
+        return counts;
+      }
+ 
+      function drawHistogram(counts, k) {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+ 
+        const canvasWidth = 800;
+        const canvasHeight = 500;
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+ 
+        const maxCount = Math.max(...counts);
+ 
+        for (let i = 0; i < k; i++) {
+          const barHeight = (counts[i] / maxCount) * canvasHeight;
+          const barWidth = canvasWidth / k;
+          const x = i * barWidth;
+          const y = canvasHeight - barHeight;
+ 
+          ctx.fillStyle = "aquamarine";
+          ctx.fillRect(x, y, barWidth, barHeight);
+        }
+ 
+        document.body.appendChild(canvas);
+      }
+ 
+      const N = 100000;
+      const k = 1000;
+ 
+      const counts = generateUniformRandomVariates(N, k);
+      drawHistogram(counts, k);
+    </script>
+  </body>
+</html>
