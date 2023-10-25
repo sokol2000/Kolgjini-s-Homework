@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Structures in HTML</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .code-block {
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="code-block">
+  <h3>ARRAY</h3>
+  <pre>
+    <code>
+let array = [0, 1, 2, 3, 4, 5];
+
+array.forEach((element) => {
+  // console.log(element);
+});
+
+for (let i = 0; i < array.length; i++) {
+  if (array[i] === 2) {
+    continue;
+  } else if (array[i] === 4) {
+    break;
+  }
+  // console.log(array[i]);
+}
+
+array.push(3);
+array.pop();
+array[2];
+array[2] = "Ciao";
+array.includes("Ciao");
+array.sort();
+    </code>
+  </pre>
+</div>
+
+<div class="code-block">
+  <h3>DICTIONARY</h3>
+  <pre>
+    <code>
+let dic = {
+  key1: "val1",
+  key2: "val2",
+  key3: "val3",
+};
+
+const entries = Object.entries(dic);
+
+for (const [key, value] of entries) {
+  console.log(key + ": " + value);
+}
+
+dic.key3 = "val3";
+
+delete dic.key3;
+
+let val1 = dic.key1;
+
+dic.key1 = "modified-val1";
+
+if (dic.key2 !== undefined) {
+  console.log("- Key exists");
+} else {
+  console.log("- Key does not exist");
+}
+
+const values = Object.values(dic);
+if (values.includes("val2")) {
+  console.log("- Value exists");
+} else {
+  console.log("- Value does not exist");
+    </code>
+  </pre>
+</div>
+
+<div class="code-block">
+  <h3>HASHSET</h3>
+  <pre>
+    <code>
+const mySet = new Set();
+mySet.add(1);
+mySet.add(5);
+mySet.add("text");
+mySet.add({ a: 1, b: 2 });
+mySet.add({ a: 1, b: 2 });
+
+for (const element of mySet) {
+  console.log(element);
+}
+
+mySet.add("new text");
+mySet.delete(5);
+mySet.has(1);
+    </code>
+  </pre>
+</div>
+
+<div class="code-block">
+  <h3>QUEUE and STACK</h3>
+  <pre>
+    <code>
+const queue = ["Task 1", "Task 2"];
+
+queue.push("Task 3");
+
+const taskQueue = queue.shift();
+
+const stack = ["Task 1", "Task 2"];
+
+stack.push("Task 3");
+
+const taskStack = stack.pop();
+    </code>
+  </pre>
+</div>
+
+<div class="code-block">
+  <h3>LINKED LIST</h3>
+  <pre>
+    <code>
+class Node {
+  constructor(data) {
+    this.data = data;
+    this.next = null;
+  }
+}
+
+class LinkedList {
+  constructor() {
+    this.head = null;
+  }
+
+  append(data) {
+    const newNode = new Node(data);
+    if (!this.head) {
+      this.head = newNode;
+    } else {
+      let current = this.head;
+      while (current.next) {
+        current = current.next;
+      }
+      current.next = newNode;
+    }
+  }
+
+  display() {
+    let current = this.head;
+    while (current) {
+      console.log(current.data);
+      current = current.next;
+    }
+  }
+}
+
+const myList = new LinkedList();
+
+myList.append("Item 1");
+myList.append("Item 2");
+myList.append("Item 3");
+
+myList.display();
+    </code>
+  </pre>
+</div>
+
+</body>
+</html>
