@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title> HW 3 - JavaScript </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+  <style>
+    #myCanvas {
+      display: block;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body style="background-color: white; color: black;">
+    <div style="background-color: white; text-align: center; align-items: center; width:93vw; margin-top: 20px; margin-left:3.5vw ;">
+        <br>
+        <div> 
+        <h1>Attack Simulation</h1>
+        </div>
+        <br>
+        <form id="f1">
+            <div class="form-group">
+                <div style="display: flex; align-items: center; padding-left: 27.5vw;">
+                    <label for="numberN" style="margin-right: 10px;">N:</label>
+                    <input type="text" class="form-control" style="max-width: 25vw; margin-right: 3vw;" id="numberN" placeholder="Insert the number of attacks:" required value="10"> 
+                </div>
+                <br>
+                <div style="display: flex; align-items: center; padding-left: 27.5vw;">
+                    <label for="numberM" style="margin-right: 10px;">M:</label>
+                    <input type="text" class="form-control" style="max-width: 25vw; margin-right: 3vw;" id="numberM" placeholder="Insert the number of systems:" required value="4"> 
+                </div>  
+                <br>
+                <div style="display: flex; align-items: center; padding-left: 27.5vw;">
+                    <label for="numberP" style="margin-right: 10px;">P:</label>
+                    <input type="text" class="form-control" style="max-width: 25vw; margin-right: 3vw;" id="numberP" placeholder="Insert the probability:" required value="0.8"> 
+                </div> 
+                <br>
+                <div style="display: flex; align-items: center; padding-left: 20vw;">
+                    <label for="numberA" style="margin-right: 10px;">Attack Histogram:</label>
+                    <input type="text" class="form-control" style="max-width: 25vw; margin-right: 3vw;" id="numberA" placeholder="Insert attack's number for the instogram:" required value="2"> 
+                </div>  
+                <br>
+                <div style="display: flex; align-items: center;"></div>
+                <button type="button" class="btn btn-success" style="color: white;" onclick="collectData()"> Send </button>  
+                </div> 
+                <br>
+                <canvas id="myCanvas" style="background-color: rgb(236 236 236 / 94%); align-self: center;"></canvas> 
+                <br>                                      
+            </div>
+            <br>
+        </form>
+    </div>
+</body>
+<script>
+
+    function setCanvasWidthToScreenWidth() {
+        const canvas = document.getElementById('myCanvas');
+        const screenWidth = window.innerWidth * 0.9;
+        const screenHeight = window.innerHeight;
+
+        canvas.width = screenWidth;
+        canvas.height = screenHeight;
+    }
+
+    window.addEventListener('load', () => {
+        setCanvasWidthToScreenWidth();
+    });
+
+    window.addEventListener('resize', setCanvasWidthToScreenWidth);
+</script>
+
+<script>
+
+    class Rect {
+        constructor(x, y, width, height, idRect) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            this.gridSpacing = 8;
+            this.gridXini = x;
+            this.gridXfin = x + width;
+            this.gridYini = y;
+            this.gridYfin = y + height;
+            this.gridScale = 1;
+            this.offsetViewX = 0.0;
+            this.offsetViewY = 0.0;
+            this.id = idRect;
+        }
+
+        draw() {
+            ctx.strokeRect(this.x, this.y, this.width, this.height);
+            this.drawGrid();
+            this.drawAxes();
+            drawChart(this);
+            histogramData(A);
+            drawHistogram(this,A);
+            histogramData(N);
+            drawHistogram(this, N);
+        }
+
+        drawGrid() {
+            const gridSize = this.gridSpacing;
+            const numRows = 2*N;
+            const numCols = N;
+            const dimRows = (this.gridYfin-this.gridYini)/numRows;
+            const dimCols = (this.gridXfin-this.gridXini)/numCols;
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(this.x, this.y, this.width, this.height);
+            ctx.clip();
+
+            for (let y = this.gridYini + this.offsetViewY; y <= this.gridYfin + this.offsetViewY; y += dimRows) {
+                let xGrigliaSx = this.gridXini + this.offsetViewX;
+                let xGrigliaDx = this.gridXfin + this.offsetViewX;
+
+                ctx.beginPath();
+                ctx.moveTo(xGrigliaSx, y);
+                ctx.lineTo(xGrigliaDx, y);
+                ctx.strokeStyle = 'white';
+                ctx.stroke();
+            }
+
+            for (let x = this.gridXini + this.offsetViewX; x <= this.gridXfin + this.offsetViewX; x += dimCols) {
+                let yGrigliaSopra = this.gridYini + this.offsetViewY;
+                let yGrigliaSotto = this.gridYfin + this.offsetViewY;
+
+                ctx.beginPath();
+                ctx.moveTo(x, yGrigliaSopra);
+                ctx.lineTo(x, yGrigliaSotto);
+                ctx.strokeStyle = 'white';
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+
+
+        drawAxes() {
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+
+            ctx.save(); // Salva il contesto canvas corrente
+
+            // Crea un percorso di clip rettangolare basato sulle dimensioni del rettangolo
+            ctx.beginPath();
+            ctx.rect(this.x, this.y, this.width, this.height);
+            ctx.clip(); // Imposta il percorso di clip
+
+            const startX = this.gridXini + this.offsetViewX;
+            const endX = this.gridXfin + this.offsetViewX;
+            const centerY = (this.gridYini + this.gridYfin) / 2 + this.offsetViewY;
+
+            // Disegna l'asse delle ascisse (orizzontale)
+            ctx.beginPath();
+            ctx.moveTo(startX, centerY);
+            ctx.lineTo(endX, centerY);
+            ctx.stroke();
+
+            ctx.restore(); // Ripristina il contesto canvas precedente (rimuove il percorso di clip)
+            
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(this.x, this.y, this.width, this.height);
+            ctx.clip();
+
+            const startY = this.gridYini + this.offsetViewY;
+            const endY = this.gridYfin + this.offsetViewY;
+            const originX = this.gridXini + this.offsetViewX;
+
+            // Disegna l'asse delle ordinate (verticale)
+            ctx.beginPath();
+            ctx.moveTo(originX, startY);
+            ctx.lineTo(originX, endY);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        zoom(scale) {
+            let fattoreScala = 32;
+            this.gridXini -= fattoreScala*scale
+            this.gridXfin += fattoreScala*scale
+            this.gridYini -= fattoreScala*scale
+            this.gridYfin += fattoreScala*scale
+        }
+
+        moveRect(dx, dy) {
+            this.x += dx;
+            this.y += dy;
+            this.gridXini += dx;
+            this.gridXfin += dx;
+            this.gridYini += dy;
+            this.gridYfin += dy;
+        }
+    }
+
+    const canvas = document.getElementById("myCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let isDragging = false;
+    let isDraggingView = false;
+    let isResizingBottomRight = false;
+    let selectedRect = null;
+    let lastMouseX, lastMouseY;
+
+    const objects = [];
+
+    var N = 0;
+    var M = 0;
+    var P = 0;
+    var A = 0;
+    var dataCollector= [];
+    let colori = [];
+
+    var intervalsNumber = 20;
+    var count={};
+    var count3={};
+    var count4={};
+    var dataForHistogram = Object.values(count);
+    var labelsForHistogram = Object.keys(count);
+
+    var dataForHistogram3 = Object.values(count3);
+    var labelsForHistogram3 = Object.keys(count3);
+
+    var dataForHistogram4 = Object.values(count4);
+    var labelsForHistogram4 = Object.keys(count4);
+        
+    var barHeight = 10;
+
+    const rect1 = new Rect(80, 30, 550, 300, 1);
+    const rect2 = new Rect(80, 370, 550, 300, 2);
+    const rect3 = new Rect(800, 30, 550, 300, 3);
+    const rect4 = new Rect(800, 370, 550, 300, 4);
+
+    objects.push(rect1);
+    objects.push(rect2);
+    objects.push(rect3);
+    objects.push(rect4);
+
+    function drawRectangles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (const rect of objects) {
+            rect.draw();
+        }
+    }
+
+///////////////////////////////////////////////////////////////////
+
+    function histogramData(pos){
+        count={};
+        count3={};
+        count4={};
+        var errore = 0;
+        for(var m = 0; m < M; m++){
+            //for(var c=0; c<intervalsNumber; c++){
+                //var inizio = ((c/intervalsNumber)*10).toFixed(1);
+                //var fine = (((c+1)/intervalsNumber)*10).toFixed(1);
+            for(var c=0; c<(N); c++){
+                var inizio = (c).toFixed(1);
+                var fine = (c+1).toFixed(1);
+                var key = `${inizio}-${fine}`;
+                if(dataCollector[m][1][pos-1]>=inizio && dataCollector[m][1][pos-1]<fine){
+                    if (count[key]) {
+                        count[key] += 1;
+                    } else {
+                        count[key] = 1;
+                    }
+                }else if(dataCollector[m][1][pos-1] == fine){
+                    if(pos == N){
+                        if(dataCollector[m][1][pos-1] == pos){
+                            if (count[`${fine}-${fine+1}`]) {
+                                count[`${fine}-${fine+1}`] += 1;
+                            } else {
+                                count[`${fine}-${fine+1}`] = 1;
+                            }
+                        }
+                    }
+                }
+                if(dataCollector[m][2][pos-1]>=inizio && dataCollector[m][2][pos-1]<fine){
+                    if (count3[key]) {
+                        count3[key] += 1;
+                    } else {
+                        count3[key] = 1;
+                    }
+                }else if(dataCollector[m][2][pos-1] == fine){
+                    if(pos == N){
+                        if(dataCollector[m][2][pos-1] == pos){
+                            if (count3[`${fine}-${fine+1}`]) {
+                                count3[`${fine}-${fine+1}`] += 1;
+                            } else {
+                                count3[`${fine}-${fine+1}`] = 1;
+                            }
+                        }
+                    }
+                }
+                if(dataCollector[m][3][pos-1]>=inizio && dataCollector[m][3][pos-1]<fine){
+                    if (count4[key]) {
+                        count4[key] += 1;
+                    } else {
+                        count4[key] = 1;
+                    }
+                }else if(dataCollector[m][3][pos-1] == fine){
+                    if(pos == N){
+                        if(dataCollector[m][3][pos-1] == pos){
+                            if (count4[`${fine}-${fine+1}`]) {
+                                count4[`${fine}-${fine+1}`] += 1;
+                            } else {
+                                count4[`${fine}-${fine+1}`] = 1;
+                            }
+                        }
+                    }
+                }
+            }          
+        } 
+        dataForHistogram = Object.values(count);
+        labelsForHistogram = Object.keys(count);
+
+        dataForHistogram3 = Object.values(count3);
+        labelsForHistogram3 = Object.keys(count3);
+
+        dataForHistogram4 = Object.values(count4);
+        labelsForHistogram4 = Object.keys(count4);      
+    }
+
+    function collectData(){
+        N = parseInt(document.getElementById("numberN").value);
+        M = parseInt(document.getElementById("numberM").value);
+        P = parseFloat(document.getElementById("numberP").value);
+        A = parseInt(document.getElementById("numberA").value);
+
+        dataCollector=[new Array(M).fill(0)];
+
+        for (var m = 0; m < M; m++) {
+            dataCollector[m]=[new Array(4).fill(0)];
+            var data = [];
+            var data2 = [];
+            var data3 = [];
+            var data4 = [];
+            var counter = new Array(N).fill(0);
+
+            for (var n = 0; n < N; n++) {
+                const randomNumber = Math.random();
+                
+                var result = 0;
+                var result2 = 0;
+                var result3 = 0;
+                var result4 = 0;
+
+                if(randomNumber <= P){
+                    result = -1;
+                    result2 = 1;
+                    result3 = 1;
+                    result4 = 1;
+                }else{
+                    result = 1;
+                    result2 = 0;
+                    result3 = 0;
+                    result4 = 0;
+                }
+                    
+                if(n==0){
+                    data.push(result);
+                    data2.push(result2);
+                    data3.push(result3);
+                    data4.push(result4);  
+                }else{
+                    data.push(data[n-1]+result);  
+                    data2.push(data2[n-1]+result2);  
+                    data3.push((data3[n-1]+result3)/n);  
+                    data4.push((data4[n-1]+result4)/Math.sqrt(n));  
+                }
+            }
+            dataCollector[m][0]=data;
+            dataCollector[m][1]=data2;
+            dataCollector[m][2]=data3;
+            dataCollector[m][3]=data4;
+        }
+
+        for (var m = 0; m < M; m++) {
+            var letters = '0123456789ABCDEF';
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            colori.push(color);
+        }
+        
+        drawRectangles();
+    }
+
+////////////////////
+
+    function drawHistogram(rect, pos){
+        factorX = (rect.gridXfin - rect.gridXini)/N;
+        factorY = ((rect.gridYfin - rect.gridYini)/2)/N;
+        var factorXHistogram = ((rect.gridXfin - rect.gridXini) / N)
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(rect.x, rect.y, rect.width, rect.height);
+        ctx.clip();
+
+        if(rect.id == 2){
+            for (let i = 0; i < dataForHistogram.length; i++) {
+                var p = parseFloat((labelsForHistogram[i].split('-'))[0]);
+                const barWidth  = (dataForHistogram[i] ) * factorXHistogram;
+
+                let x = (rect.gridXini + rect.offsetViewX) + (pos)*factorXHistogram;
+                let y = (rect.gridYini + rect.offsetViewY) + (rect.gridYfin - rect.gridYini)/2 - barHeight - p*factorY;
+
+                ctx.fillStyle = "rgba(0, 0, 255, 0.5)"; 
+                ctx.fillRect(x, y, barWidth, barHeight);
+                ctx.fillStyle = "black";
+                ctx.textAlign = "center";
+                ctx.fillText("", (rect.gridXfin - rect.gridXini) - 10, y + barHeight / 2);   
+            } 
+            ctx.stroke();
+        } 
+
+        if(rect.id == 3){
+            for (let i = 0; i < dataForHistogram3.length; i++) {
+                var p3 = parseFloat((labelsForHistogram3[i].split('-'))[0])
+                const barWidth3  = (dataForHistogram3[i] ) * factorXHistogram;
+                
+                let x3 = (rect.gridXini + rect.offsetViewX) + (pos)*factorXHistogram;
+                let y3 = (rect.gridYini + rect.offsetViewY) + (rect.gridYfin - rect.gridYini)/2 - barHeight - p3*factorY;
+
+                ctx.fillStyle = "rgba(0, 0, 255, 0.5)"; 
+                ctx.fillRect(x3, y3, barWidth3, 5*(barHeight/7));
+                ctx.fillStyle = "black";
+                ctx.textAlign = "center";
+                ctx.fillText("", (rect.gridXfin - rect.gridXini) - 10, y3 + barHeight / 2);   
+            }
+            ctx.stroke();
+        }
+
+        if(rect.id == 4){
+            for (let i = 0; i < dataForHistogram4.length; i++) {
+                
+                var p4 = parseFloat((labelsForHistogram4[i].split('-'))[0])
+                const barWidth4  = (dataForHistogram4[i] ) * factorXHistogram;
+
+                let x4 = (rect.gridXini + rect.offsetViewX) + (pos)*factorXHistogram;
+                let y4 = (rect.gridYini + rect.offsetViewY) + (rect.gridYfin - rect.gridYini)/2 - barHeight - p4*factorY;
+
+                ctx.fillStyle = "rgba(0, 0, 255, 0.5)"; 
+                ctx.fillRect(x4, y4, barWidth4, 5*(barHeight/7));
+                ctx.fillStyle = "black";
+                ctx.textAlign = "center";
+                ctx.fillText("", (rect.gridXfin - rect.gridXini) - 10, y4 + barHeight / 2);
+            }  
+            ctx.stroke();
+        }
+
+        ctx.restore();
+    }
+
+    function drawChart(x, y, width, height) {
+        var factorX = 0;
+        var factorY = 0;
+        
+        objects.forEach((rect) => {
+
+            factorX = (rect.gridXfin - rect.gridXini)/N;
+            factorY = ((rect.gridYfin - rect.gridYini)/2)/N;
+
+            for(var m = 0; m < M; m++){
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(rect.x, rect.y, rect.width, rect.height);
+                ctx.clip();
+                
+                ctx.strokeStyle = colori[m];
+                
+                for (var n = 0; n < N; n++) {
+                    let a = rect.gridXini + rect.offsetViewX;
+                    let b = rect.gridYini + rect.offsetViewY;
+                    let c = rect.gridYfin - rect.gridYini;
+                    if(n==0){
+                        if(rect.id==1){
+                            ctx.moveTo(n*factorX + a, b + c/2);
+                            ctx.lineTo((n+1)*factorX + a, -(dataCollector[m][0][n])*factorY + b + c/2);
+                        }
+                        if(rect.id==2){
+                            ctx.moveTo(n*factorX + a, b + c/2);
+                            ctx.lineTo((n+1)*factorX + a, -(dataCollector[m][1][n])*factorY + b + c/2);
+                        }
+                        if(rect.id==3){
+                            ctx.moveTo(n*factorX + a, b + c/2);
+                            ctx.lineTo((n+1)*factorX + a, -(dataCollector[m][2][n])*factorY + b + c/2);
+                        }
+                        if(rect.id==4){
+                            ctx.moveTo(n*factorX + a, b + c/2);
+                            ctx.lineTo((n+1)*factorX + a, -(dataCollector[m][3][n])*factorY + b + c/2);
+                        }
+                    }else{
+                        if(rect.id==1){
+                            ctx.moveTo(n*factorX + a, -(dataCollector[m][0][n-1])*factorY + b + c/2);
+                            ctx.lineTo((n+1)*factorX + a, -(dataCollector[m][0][n])*factorY + b + c/2);
+                        }
+                        if(rect.id==2){
+                            ctx.moveTo(n*factorX + a, -(dataCollector[m][1][n-1])*factorY + b + c/2);
+                            ctx.lineTo((n+1)*factorX + a, -(dataCollector[m][1][n])*factorY + b + c/2);
+                        }
+                        if(rect.id==3){
+                            ctx.moveTo(n*factorX + a, -(dataCollector[m][2][n-1])*factorY + b + c/2);
+                            ctx.lineTo((n+1)*factorX + a, -(dataCollector[m][2][n])*factorY + b + c/2);
+                        }
+                        if(rect.id==4){
+                            ctx.moveTo(n*factorX + a, -(dataCollector[m][3][n-1])*factorY + b + c/2);
+                            ctx.lineTo((n+1)*factorX + a, -(dataCollector[m][3][n])*factorY + b + c/2);
+                        }
+                    }
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+        })
+    }
+
+///////////////////////////////////////////////////////////////////
+
+    canvas.addEventListener("mousedown", (e) => {
+        const mouseX = e.clientX - canvas.getBoundingClientRect().left;
+        const mouseY = e.clientY - canvas.getBoundingClientRect().top;
+
+        if (e.button === 0) { // Tasto sinistro
+            for (const rect of objects) {
+                if(
+                    mouseX < rect.x + rect.width + 10 &&
+                    mouseX > rect.x + rect.width - 10 &&
+                    mouseY < rect.y + rect.height + 10 &&
+                    mouseY > rect.y + rect.height - 10
+                ){
+                    isResizingBottomRight = true;
+                    selectedRect = rect;
+                    lastMouseX = mouseX;
+                    lastMouseY = mouseY;
+                    break;
+                }
+                if (
+                    mouseX >= rect.x &&
+                    mouseX <= rect.x + rect.width &&
+                    mouseY >= rect.y &&
+                    mouseY <= rect.y + rect.height
+                ) {
+                    selectedRect = rect;
+                    isDragging = true;
+                    lastMouseX = mouseX;
+                    lastMouseY = mouseY;
+                    break;
+                }
+            }
+        } else if(e.button === 2){  //tasto destro
+            selectedRect = findSelectedObject(mouseX, mouseY);
+            if(selectedRect){
+                isDraggingView = true;
+                lastMouseX = mouseX;
+                lastMouseY = mouseY;
+            }
+        }
+        e.preventDefault();
+    });
+
+    function findSelectedObject(x, y) {
+        for (let i = objects.length - 1; i >= 0; i--) {
+            const object = objects[i];
+            if (
+            x >= object.x &&
+            x <= object.x + object.width &&
+            y >= object.y &&
+            y <= object.y + object.height
+            ) {
+            return object;
+            }
+        }
+        return null;
+    }
+
+    function findBelowObject(rect){
+        for (let i = objects.length - 1; i >= 0; i--) {
+            const object = objects[i];
+            if(object.id != rect.id){
+                if ( 
+                    rect.x + rect.width > object.x && // Lato destro del rettangolo 1 > Lato sinistro del rettangolo 2
+                    rect.x < object.x + object.width && // Lato sinistro del rettangolo 1 < Lato destro del rettangolo 2
+                    rect.y + rect.height > object.y && // Lato inferiore del rettangolo 1 > Lato superiore del rettangolo 2
+                    rect.y < object.y + object.height // Lato superiore del rettangolo 1 < Lato inferiore del rettangolo 2
+                 ) {
+                    return object;
+                }
+                if ( 
+                    object.x + object.width > rect.x && // Lato destro del rettangolo 2 > Lato sinistro del rettangolo 1
+                    object.x < rect.x + rect.width && // Lato sinistro del rettangolo 2 < Lato destro del rettangolo 1
+                    object.y + object.height > rect.y && // Lato inferiore del rettangolo 2 > Lato superiore del rettangolo 1
+                    object.y < rect.y + rect.height // Lato superiore del rettangolo 2 < Lato inferiore del rettangolo 1
+                 ) {
+                    return object;
+                }
+            }
+        }
+        return null;
+    }
+
+    canvas.addEventListener("mousemove", (e) => {
+        const mouseX = e.clientX - canvas.getBoundingClientRect().left;
+        const mouseY = e.clientY - canvas.getBoundingClientRect().top;
+        
+        if (isDragging) {
+            if (selectedRect) {
+                const dx = mouseX - lastMouseX;
+                const dy = mouseY - lastMouseY;
+                selectedRect.moveRect(dx, dy);
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawRectangles();
+
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
+        } else if (isDraggingView) {
+            if (selectedRect) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawRectangles();
+                selectedRect.offsetViewX += mouseX - lastMouseX;
+                selectedRect.offsetViewY += mouseY - lastMouseY;
+                lastMouseX = mouseX;
+                lastMouseY = mouseY;
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawRectangles();
+                const dx = mouseX - lastMouseX;
+                const dy = mouseY - lastMouseY;
+                for (const rect of objects) {
+                    rect.offsetViewX += dx;
+                    rect.offsetViewY += dy;
+                }
+                lastMouseX = mouseX;
+                lastMouseY = mouseY;
+            }
+        }else if(isResizingBottomRight){
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawRectangles();
+
+            selectedRect.gridXfin += mouseX - lastMouseX;
+            selectedRect.gridYfin += mouseY - lastMouseY;
+
+
+            selectedRect.width += mouseX - lastMouseX;
+            selectedRect.height += mouseY - lastMouseY;
+
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
+        }
+        e.preventDefault();
+    });
+
+    canvas.addEventListener("mouseup", () => {
+        isDragging = false;
+        isDraggingView = false;
+        isResizingBottomRight = false;
+    });
+
+    canvas.addEventListener("wheel", (e) => {
+        if (selectedRect) {
+            const delta = e.deltaY;
+            const scale = delta > 0 ? -1 : 1;
+            selectedRect.zoom(scale);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawRectangles();
+            e.preventDefault();
+        }
+    });
+
+    canvas.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+    });
+</script>
+</html>
