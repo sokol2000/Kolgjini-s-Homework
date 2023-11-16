@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title> HW 6 - JavaScript </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+  <style>
+    #myCanvas {
+      display: block;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body style="background-color: white;">
+    <div style="background-color: white; color: black; text-align: center; align-items: center; width:93vw; margin-top: 20px; margin-left:3.5vw ;">
+        <form id="f1">
+            <div class="form-group">
+                <div style="display: flex; align-items: center; padding-left: 27.5vw;">
+                    <label for="numberN" style="margin-right: 10px;">N:</label>
+                    <input type="text" class="form-control" style="max-width: 25vw; margin-right: 3vw;" id="numberN" placeholder="Insert the number of attacks:" required> 
+                </div>
+                <br>
+                <div style="display: flex; align-items: center; padding-left: 27.5vw;">
+                    <label for="numberM" style="margin-right: 10px;">M:</label>
+                    <input type="text" class="form-control" style="max-width: 25vw; margin-right: 3vw;" id="numberM" placeholder="Insert the number of systems:" required> 
+                </div>  
+                <br>
+                <div style="display: flex; align-items: center; padding-left: 23.5vw;">
+                    <label for="probability" style="margin-right: 10px;">Probability:</label>
+                    <input type="text" class="form-control" style="max-width: 25vw; margin-right: 3vw;" id="probability" placeholder="Insert the probability:" required> 
+                </div> 
+                <br>
+                <div style="display: flex; align-items: center; padding-left: 28vw;">
+                    <label for="numberS" style="margin-right: 10px;">S:</label>
+                    <input type="number" class="form-control" style="max-width: 25vw; margin-right: 3vw;" id="numberS" step="10" min="10" max="100">
+                </div>  
+                <br>
+                <div style="display: flex; align-items: center;"></div>
+                <button type="button" class="btn btn-success" style="color: white;" onclick="collectData()"> Send </button>  
+                </div> 
+                <br>
+                <canvas id="myCanvas" style="background-color: rgb(236 236 236 / 94%); align-self: center;"></canvas> 
+                <br>                                      
+            </div>
+            <br>
+        </form>
+    </div>
+</body>
+<script>
+    "use strict";
+    function setCanvasWidthToScreenWidth() {
+        "use strict";
+        const canvas = document.getElementById('myCanvas');
+        const screenWidth = window.innerWidth * 0.9;
+        const screenHeight = window.innerHeight;
+
+        canvas.width = screenWidth;
+        canvas.height = screenHeight;
+    }
+
+    window.addEventListener('load', () => {
+        setCanvasWidthToScreenWidth();
+    });
+
+    window.addEventListener('resize', setCanvasWidthToScreenWidth);
+</script>
+
+<script>
+
+    class Rect {
+        constructor(x, y, width, height, idRect) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            this.gridSpacing = 8;
+            this.gridXini = x;
+            this.gridXfin = x + width;
+            this.gridYini = y;
+            this.gridYfin = y + height;
+            this.offsetViewX = 0.0;
+            this.offsetViewY = 0.0;
+            this.id = idRect;
+        }
+
+        draw() {
+            this.drawGrid();
+            drawChart(this);
+            this.drawAxes();
+            drawRow(this, (-S), "rgba(0, 0, 0, 0.3)");
+            drawRectanglePerimeter(this);
+            //histogramData(A);
+            //histogramData(N);
+            drawHistogram(this, N, dataForHistogramFine, labelsForHistogramFine);
+        }
+
+        drawGrid() {
+            const gridSize = this.gridSpacing;
+            const numRows = 2*N;
+            const numCols = N;
+            const dimRows = Math.abs((this.gridYfin-this.gridYini)/numRows);
+            const dimCols = Math.abs((this.gridXfin-this.gridXini)/numCols);
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(this.x, this.y, this.width, this.height);
+            ctx.clip();
+
+            if(this.gridYini + this.offsetViewY < this.gridYfin + this.offsetViewY){
+                for (let y = this.gridYini + this.offsetViewY; y <= this.gridYfin + this.offsetViewY; y += dimRows) {
+                    let xGrigliaSx = this.gridXini + this.offsetViewX;
+                    let xGrigliaDx = this.gridXfin + this.offsetViewX;
+
+                    let ris = drawInsideRectangle(this, xGrigliaSx, y, xGrigliaDx, y);
+                    if(ris != null){
+                        ctx.beginPath();
+                        //ctx.moveTo(xGrigliaSx, y);
+                        //ctx.lineTo(xGrigliaDx, y);
+                        ctx.moveTo(ris[0], ris[1]);
+                        ctx.lineTo(ris[2], ris[3]);
+                        ctx.strokeStyle = 'white';
+                        ctx.stroke();
+                    }
+                }
+            }else{
+                for (let y = this.gridYfin + this.offsetViewY; y <= this.gridYini + this.offsetViewY; y += dimRows) {
+                    let xGrigliaSx = this.gridXini + this.offsetViewX;
+                    let xGrigliaDx = this.gridXfin + this.offsetViewX;
+
+                    let ris = drawInsideRectangle(this, xGrigliaSx, y, xGrigliaDx, y);
+                    if(ris != null){
+                        ctx.beginPath();
+                        //ctx.moveTo(xGrigliaSx, y);
+                        //ctx.lineTo(xGrigliaDx, y);
+                        ctx.moveTo(ris[0], ris[1]);
+                        ctx.lineTo(ris[2], ris[3]);
+                        ctx.strokeStyle = 'white';
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            if(this.gridXini + this.offsetViewX < this.gridXfin + this.offsetViewX){
+                for (let x = this.gridXini + this.offsetViewX; x <= this.gridXfin + this.offsetViewX; x += dimCols) {
+                    let yGrigliaSopra = this.gridYini + this.offsetViewY;
+                    let yGrigliaSotto = this.gridYfin + this.offsetViewY;
+
+                    let ris = drawInsideRectangle(this, x, yGrigliaSopra, x, yGrigliaSotto);
+                    if(ris != null){
+                        ctx.beginPath();
+                        //ctx.moveTo(x, yGrigliaSopra);
+                        //ctx.lineTo(x, yGrigliaSotto);
+                        ctx.moveTo(ris[0], ris[1]);
+                        ctx.lineTo(ris[2], ris[3]);
+                        ctx.strokeStyle = 'white';
+                        ctx.stroke();
+                    }
+                }
+            }else{
+                for (let x = this.gridXfin + this.offsetViewX; x <= this.gridXini + this.offsetViewX; x += dimCols) {
+                    let yGrigliaSopra = this.gridYini + this.offsetViewY;
+                    let yGrigliaSotto = this.gridYfin + this.offsetViewY;
+
+                    let ris = drawInsideRectangle(this, x, yGrigliaSopra, x, yGrigliaSotto);
+                    if(ris != null){
+                        ctx.beginPath();
+                        //ctx.moveTo(x, yGrigliaSopra);
+                        //ctx.lineTo(x, yGrigliaSotto);
+                        ctx.moveTo(ris[0], ris[1]);
+                        ctx.lineTo(ris[2], ris[3]);
+                        ctx.strokeStyle = 'white';
+                        ctx.stroke();
+                    }
+                }
+            }
+            ctx.restore();
+            
+        }
+
+        drawAxes() {
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+
+            ctx.save(); // Salva il contesto canvas corrente
+
+            // Crea un percorso di clip rettangolare basato sulle dimensioni del rettangolo
+            ctx.beginPath();
+            ctx.rect(this.x, this.y, this.width, this.height);
+            ctx.clip(); // Imposta il percorso di clip
+
+            const startX = this.gridXini + this.offsetViewX;
+            const endX = this.gridXfin + this.offsetViewX;
+            const centerY = (this.gridYini + this.gridYfin) / 2 + this.offsetViewY;
+
+            let ris = drawInsideRectangle(this, startX, centerY, endX, centerY);
+            if(ris != null){
+                // Disegna l'asse delle ascisse (orizzontale)
+                ctx.beginPath();
+                //ctx.moveTo(startX, centerY);
+                //ctx.lineTo(endX, centerY);
+                ctx.moveTo(ris[0], ris[1]);
+                ctx.lineTo(ris[2], ris[3]);
+                ctx.stroke();
+
+            }
+
+            ctx.restore(); // Ripristina il contesto canvas precedente (rimuove il percorso di clip)
+            
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(this.x, this.y, this.width, this.height);
+            ctx.clip();
+
+            const startY = this.gridYini + this.offsetViewY;
+            const endY = this.gridYfin + this.offsetViewY;
+            const originX = this.gridXini + this.offsetViewX;
+
+            ris = drawInsideRectangle(this, originX, startY, originX, endY);
+            if(ris != null){
+            // Disegna l'asse delle ordinate (verticale)
+            ctx.beginPath();
+            //ctx.moveTo(originX, startY);
+            //ctx.lineTo(originX, endY);
+            ctx.moveTo(ris[0], ris[1]);
+            ctx.lineTo(ris[2], ris[3]);
+            ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+
+        zoom(scale) {
+            let fattoreScala = (this.gridXfin-this.gridXini)/(this.gridYfin - this.gridYini) * N;
+            if(this.gridXini - fattoreScala*scale < this.gridXfin + fattoreScala*scale){
+                this.gridXini -= fattoreScala*scale
+                this.gridXfin += fattoreScala*scale
+            }
+            if(this.gridYini - fattoreScala*scale < this.gridYfin + fattoreScala*scale){
+                this.gridYini -= fattoreScala*scale
+                this.gridYfin += fattoreScala*scale
+            }
+        }
+
+        moveRect(dx, dy) {
+            if(this.x + dx >= 0 && this.y + dy >= 0 && this.x + this.width + dx <= canvas.width && this.y + this.height + dy <= canvas.height){
+                this.x += dx;
+                this.y += dy;
+                this.gridXini += dx;
+                this.gridXfin += dx;
+                this.gridYini += dy;
+                this.gridYfin += dy;
+            }
+        }
+    }
+
+    const canvas = document.getElementById("myCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let isDragging = false;
+    let isDraggingView = false;
+    let isResizingBottomRight = false;
+    let selectedRect = null;
+    let lastMouseX, lastMouseY;
+    let timer = null;
+
+    const objects = [];
+
+    var N = 0;
+    var M = 0;
+    var probability = 0;
+    var S = 0;
+    var P = 0;
+    var dataCollector = [];
+    var drawDataset = [];
+    let colori = [];
+
+    var intervalsNumber = 20;
+    var count={};
+    var labelsForHistogram;
+    var dataForHistogramFine;
+    var labelsForHistogramFine;
+        
+    const rect2 = new Rect(80, 30, 800, 400, 2);
+
+    objects.push(rect2);
+
+    function drawRectangle(rect) {
+        "use strict";
+        rect.draw();
+    }
+
+///////////////////////////////////////////////////////////////////
+
+    function histogramData(pos){
+        "use strict";
+        count={};
+        for(var P=10; P<=100; P+=10){
+            count[P]=0;
+        }
+        var errore = 0;
+        for(var m = 0; m < M; m++){
+            for(var k=1; k<=10; k++){
+                P = k*10;
+                var firstTimeP = true;
+                var firstTimeS = true;
+                var X_S = N;
+
+                for(var a=0; a<N; a++){
+                    if(dataCollector[m][1][a] == -S && firstTimeS==true){
+                        firstTimeS = false;
+                        X_S = a;
+                    }
+
+                    if(dataCollector[m][1][a] == P && firstTimeP==true){
+                        firstTimeP = false;
+                        if (a < X_S) {
+                            count[P] += 1;
+                        }
+                    }
+                }
+            }          
+        }
+        
+        dataForHistogramFine = Object.values(count);
+        labelsForHistogramFine = Object.keys(count);
+        
+    }
+    
+    function collectData(){
+        "use strict";
+        N = parseInt(document.getElementById("numberN").value);
+        M = parseInt(document.getElementById("numberM").value);
+        probability = parseFloat(document.getElementById("probability").value);
+        S = parseInt(document.getElementById("numberS").value);
+
+        dataCollector=[new Array(M).fill(0)];
+        drawDataset = [];
+        for(let i = 0; i < N; i++){
+            drawDataset[i] = [];
+        }
+        for(let i = 0; i < N; i++){
+            for(let i = 0; i < N; i++){
+                drawDataset[i].push(0);
+            }
+        }
+
+        for (let m = 0; m < M; m++) {
+            dataCollector[m]=[new Array(M).fill(0)];
+            var data2 = [];
+            var counter = new Array(N).fill(0);
+
+            for (let n = 0; n < N; n++) {
+                const randomNumber = Math.random();
+            
+                var result2 = 0;
+
+                if(randomNumber <= probability){
+                    result2 = 1;
+                }else{
+                    result2 = -1;
+                }
+                    
+                if(n==0){
+                    data2.push(result2);
+                }else{
+                    data2.push(data2[n-1]+result2);
+                }
+            }
+            dataCollector[m][1]=data2;
+        }
+
+        for (let m = 0; m < M; m++) {
+            var letters = '0123456789ABCDEF';
+            var color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            colori.push(color);
+        }
+
+        histogramData(N);
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        drawRectangle(rect2);
+    }
+
+////////////////////
+
+    function drawInsideRectangle(rect, x_ini, y_ini, x_fin, y_fin){
+        ris_x_ini = x_ini;
+        ris_y_ini = y_ini;
+        ris_x_fin = x_fin;
+        ris_y_fin = y_fin;
+        ris = null;
+        ///////disegno solo all'interno del rettangolo
+        if(rect.width >= 0){
+            if(rect.height >= 0){
+                if(x_ini < rect.x){
+                    ris_x_ini = rect.x;
+                }
+                if(x_fin > rect.w + rect.width){
+                    ris_x_fin = rect.x + rect.width;
+                }
+                if(y_ini < rect.y){
+                    ris_y_ini = rect.y;
+                }
+                if(y_fin > rect.y + rect.height){
+                    ris_y_fin = rect.y + rect.height;
+                }
+                ris = [ris_x_ini, ris_y_ini, ris_x_fin, ris_y_fin];
+                ///////devo controllare se quello che disegno inizia e finsica all'interno del rettangolo, sennò non lo disegno
+                if(x_ini < rect.x && x_fin < rect.x){
+                    ris = null;
+                }
+                if(x_ini > (rect.x + rect.width) && x_fin > (rect.x + rect.width)){
+                    ris = null;
+                }
+                if(y_ini < rect.y && y_fin < rect.y){
+                    ris = null;
+                }
+                if(y_ini > (rect.y + rect.height) && y_fin > (rect.y + rect.height)){
+                    ris = null;
+                }
+            }else{
+                if(x_ini < rect.x){
+                    ris_x_ini = rect.x;
+                }
+                if(x_fin > rect.w + rect.width){
+                    ris_x_fin = rect.x + rect.width;
+                }
+                if(y_ini > rect.y){
+                    ris_y_ini = rect.y;
+                }
+                if(y_fin < rect.y + rect.height){
+                    ris_y_fin = rect.y + rect.height;
+                }
+                ris = [ris_x_ini, ris_y_ini, ris_x_fin, ris_y_fin];
+                ///////devo controllare se quello che disegno inizia e finsica all'interno del rettangolo, sennò non lo disegno
+                if(x_ini < rect.x && x_fin < rect.x){
+                    ris = null;
+                }
+                if(x_ini > (rect.x + rect.width) && x_fin > (rect.x + rect.width)){
+                    ris = null;
+                }
+                if(y_ini > rect.y && y_fin > rect.y){
+                    ris = null;
+                }
+                if(y_ini < (rect.y + rect.height) && y_fin < (rect.y + rect.height)){
+                    ris = null;
+                }
+            }
+        }else{
+            if(rect.height >= 0){
+                if(x_ini > rect.x){
+                    ris_x_ini = rect.x;
+                }
+                if(x_fin < rect.w + rect.width){
+                    ris_x_fin = rect.x + rect.width;
+                }
+                if(y_ini < rect.y){
+                    ris_y_ini = rect.y;
+                }
+                if(y_fin > rect.y + rect.height){
+                    ris_y_fin = rect.y + rect.height;
+                }
+                ris = [ris_x_ini, ris_y_ini, ris_x_fin, ris_y_fin];
+                ///////devo controllare se quello che disegno inizia e finsica all'interno del rettangolo, sennò non lo disegno
+                if(x_ini > rect.x && x_fin > rect.x){
+                    ris = null;
+                }
+                if(x_ini < (rect.x + rect.width) && x_fin < (rect.x + rect.width)){
+                    ris = null;
+                }
+                if(y_ini < rect.y && y_fin < rect.y){
+                    ris = null;
+                }
+                if(y_ini > (rect.y + rect.height) && y_fin > (rect.y + rect.height)){
+                    ris = null;
+                }
+            }else{
+                if(x_ini > rect.x){
+                    ris_x_ini = rect.x;
+                }
+                if(x_fin < rect.w + rect.width){
+                    ris_x_fin = rect.x + rect.width;
+                }
+                if(y_ini > rect.y){
+                    ris_y_ini = rect.y;
+                }
+                if(y_fin < rect.y + rect.height){
+                    ris_y_fin = rect.y + rect.height;
+                }
+                ris = [ris_x_ini, ris_y_ini, ris_x_fin, ris_y_fin];
+                ///////devo controllare se quello che disegno inizia e finsica all'interno del rettangolo, sennò non lo disegno
+                if(x_ini > rect.x && x_fin > rect.x){
+                    ris = null;
+                }
+                if(x_ini < (rect.x + rect.width) && x_fin < (rect.x + rect.width)){
+                    ris = null;
+                }
+                if(y_ini > rect.y && y_fin > rect.y){
+                    ris = null;
+                }
+                if(y_ini < (rect.y + rect.height) && y_fin < (rect.y + rect.height)){
+                    ris = null;
+                }
+            }
+        }
+        return ris;
+    }
+
+    function drawRow(rect, pos, color) {
+        let factorX = (rect.gridXfin - rect.gridXini)/N;
+        let factorY = ((rect.gridYfin - rect.gridYini)/2)/N;
+        ctx.strokeStyle = color; 
+        ctx.lineWidth = 2;
+
+        ctx.save(); // Salva il contesto canvas corrente
+
+        // Crea un percorso di clip rettangolare basato sulle dimensioni del rettangolo
+        ctx.beginPath();
+        ctx.rect(rect.x, rect.y, rect.width, rect.height);
+        ctx.clip(); // Imposta il percorso di clip
+
+        const startX = rect.gridXini + rect.offsetViewX;
+        const endX = rect.gridXfin + rect.offsetViewX;
+        const centerY = (rect.gridYini + rect.gridYfin) / 2 + rect.offsetViewY - pos * factorY;
+
+        let ris = drawInsideRectangle(rect, startX, centerY, endX, centerY);
+        if(ris != null){
+            // Disegna l'asse delle ascisse (orizzontale)
+            ctx.beginPath();
+            //ctx.moveTo(startX, centerY);
+            //ctx.lineTo(endX, centerY);
+            ctx.moveTo(ris[0], ris[1]);
+            ctx.lineTo(ris[2], ris[3]);
+            ctx.stroke();
+
+        }
+
+        ctx.restore(); // Ripristina il contesto canvas precedente (rimuove il percorso di clip)
+    }
+
+    function drawHistogram(rect, pos, data, labels){
+        "use strict";
+        let factorX = (rect.gridXfin - rect.gridXini)/N;
+        let factorY = ((rect.gridYfin - rect.gridYini)/2)/N;
+        let factorXHistogram = ((rect.gridXfin - rect.gridXini) / N);
+        let barHeight = 10*factorY-10; //added to make the height change with the zoom
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(rect.x, rect.y, rect.width, rect.height);
+        ctx.clip();
+
+        if(rect.id == 2){
+            for (let i = 0; i < data.length; i++) {
+                var p = parseFloat(labels[i]);
+                const barWidth  = ((data[i]) * factorXHistogram)/2;
+
+                let x = (rect.gridXini + rect.offsetViewX) + (pos)*factorXHistogram;
+                let y = (rect.gridYini + rect.offsetViewY) + (rect.gridYfin - rect.gridYini)/2 - p*factorY; // (rect.gridYini + rect.offsetViewY) + (rect.gridYfin - rect.gridYini)/2 - barHeight - (p/10)*factorY;
+
+                drawRow(rect, labels[i], "rgba(192, 192, 192)");
+
+                ctx.fillStyle = "rgba(0, 0, 255, 0.8)"; 
+                ctx.fillRect(x, y, barWidth, barHeight);
+                ctx.fillStyle = "black";
+                ctx.textAlign = "center";
+                ctx.fillText(p, x, y);
+                ctx.stroke();
+            } 
+        } 
+        ctx.restore();
+    }
+
+    function drawChart(rect) {  
+        "use strict";     
+        drawDataset = [];
+        for(let i = -N; i <= N; i += 0.5){
+            drawDataset[i] = [];
+            let arr = [];
+            for(let j = 0; j <= N; j += 0.5){
+                arr[j] = 0;
+            }
+            drawDataset[i] = arr;
+        }
+        for(let i = -N; i <= N; i += 0.5){
+            for(let j = 0; j <= N; j += 0.5){
+                drawDataset[i][j] = 0;
+            }
+        }
+
+        let factorX = (rect.gridXfin - rect.gridXini)/N;
+        let factorY = ((rect.gridYfin - rect.gridYini)/2)/N;
+        for (let n = 0; n < N; n++) {            
+            for(let m = 0; m < M; m++){
+                if(drawDataset[dataCollector[m][1][n]][n] == 0){
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(rect.x, rect.y, rect.width, rect.height);
+                    ctx.clip();
+                    ctx.strokeStyle = colori[m];
+                    let a = rect.gridXini + rect.offsetViewX;   //x_ini
+                    let b = rect.gridYini + rect.offsetViewY;   //y_ini
+                    let c = rect.gridYfin - rect.gridYini;      //height
+                    if(n==0){
+                        if(rect.id==2){
+                            let ris = drawInsideRectangle(rect, n*factorX + a, b + c/2, (n+1)*factorX + a, -(dataCollector[m][1][n])*factorY + b + c/2);
+                            if(dataCollector[m][1][n] - dataCollector[m][1][n-1] > 0){    //la linea è salita
+                                let riga = dataCollector[m][1][n] - 0.5;
+                                let colonna = n - 0.5;
+                                drawDataset[riga][colonna] = 1;
+                            }
+                            if(dataCollector[m][1][n] - dataCollector[m][1][n-1] == 0){    //la linea non è né salita né scesa
+                                let riga = dataCollector[m][1][n];
+                                let colonna = n - 0.5;
+                                drawDataset[riga][colonna] = 1;
+                            }
+                            if(dataCollector[m][1][n] - dataCollector[m][1][n-1] < 0){    //la linea è scesa
+                                let riga = dataCollector[m][1][n] + 0.5;
+                                let colonna = n - 0.5;
+                                drawDataset[riga][colonna] = 1;
+                            }
+
+                            if(ris != null){
+                                ctx.moveTo(ris[0], ris[1]);
+                                ctx.lineTo(ris[2], ris[3]);
+                                ctx.stroke();
+                            }
+                        }
+                    }else{
+                        if(rect.id==2){
+                            let ris = drawInsideRectangle(rect, n*factorX + a, -(dataCollector[m][1][n-1])*factorY + b + c/2, (n+1)*factorX + a, -(dataCollector[m][1][n])*factorY + b + c/2);
+                            if(dataCollector[m][1][n] - dataCollector[m][1][n-1] > 0){    //la linea è salita
+                                let riga = dataCollector[m][1][n] - 0.5;
+                                let colonna = n - 0.5;
+                                drawDataset[riga][colonna] = 1;
+                            }
+                            if(dataCollector[m][1][n] - dataCollector[m][1][n-1] == 0){    //la linea non è né salita né scesa
+                                let riga = dataCollector[m][1][n];
+                                let colonna = n - 0.5;
+                                drawDataset[riga][colonna] = 1;
+                            }
+                            if(dataCollector[m][1][n] - dataCollector[m][1][n-1] < 0){    //la linea è scesa
+                                let riga = dataCollector[m][1][n] + 0.5;
+                                let colonna = n - 0.5;
+                                drawDataset[riga][colonna] = 1;
+                            }
+                            
+                            if(ris != null){
+                                ctx.moveTo(ris[0], ris[1]);
+                                ctx.lineTo(ris[2], ris[3]);
+                                ctx.stroke();
+                            }
+                        }
+                    }
+                    drawDataset[dataCollector[m][1][n]][n] = 1;
+                    ctx.restore();
+                }else{
+                    
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(rect.x, rect.y, rect.width, rect.height);
+                    ctx.clip();
+                    ctx.strokeStyle = colori[m];
+                    let a = rect.gridXini + rect.offsetViewX;   //x_ini
+                    let b = rect.gridYini + rect.offsetViewY;   //y_ini
+                    let c = rect.gridYfin - rect.gridYini;      //height
+                    if(rect.id==2){                        
+                        if(dataCollector[m][1][n] - dataCollector[m][1][n-1] > 0){    //la linea è salita
+                            let riga = dataCollector[m][1][n] - 0.5;
+                            let colonna = n - 0.5;
+                            if(drawDataset[riga][colonna] == 0){
+                                drawDataset[riga][colonna] = 1;
+                                let ris = drawInsideRectangle(rect, n*factorX + a, -(dataCollector[m][1][n-1])*factorY + b + c/2, (n+1)*factorX + a, -(dataCollector[m][1][n])*factorY + b + c/2);
+                                if(ris != null){
+                                    ctx.moveTo(ris[0], ris[1]);
+                                    ctx.lineTo(ris[2], ris[3]);
+                                    ctx.stroke();
+                                }
+                            }
+                        }
+                        if(dataCollector[m][1][n] - dataCollector[m][1][n-1] == 0){    //la linea non è né salita né scesa
+                            let riga = dataCollector[m][1][n];
+                            let colonna = n - 0.5;
+                            if(drawDataset[riga][colonna] == 0){
+                                drawDataset[riga][colonna] = 1;
+                                let ris = drawInsideRectangle(rect, n*factorX + a, -(dataCollector[m][1][n-1])*factorY + b + c/2, (n+1)*factorX + a, -(dataCollector[m][1][n])*factorY + b + c/2);
+                                if(ris != null){
+                                    ctx.moveTo(ris[0], ris[1]);
+                                    ctx.lineTo(ris[2], ris[3]);
+                                    ctx.stroke();
+                                }
+                            }
+                        }
+                        if(dataCollector[m][1][n] - dataCollector[m][1][n-1] < 0){    //la linea è scesa
+                            let riga = dataCollector[m][1][n] + 0.5;
+                            let colonna = n - 0.5;
+                            if(drawDataset[riga][colonna] == 0){
+                                drawDataset[riga][colonna] = 1;
+                                let ris = drawInsideRectangle(rect, n*factorX + a, -(dataCollector[m][1][n-1])*factorY + b + c/2, (n+1)*factorX + a, -(dataCollector[m][1][n])*factorY + b + c/2);
+                                if(ris != null){
+                                    ctx.moveTo(ris[0], ris[1]);
+                                    ctx.lineTo(ris[2], ris[3]);
+                                    ctx.stroke();
+                                }
+                            }
+                        }
+                    }
+                    ctx.restore();
+                }
+            }
+        }
+    }
+
+    function drawRectanglePerimeter(rect) {    
+        "use strict";   
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(rect.x, rect.y, rect.width, rect.height);
+        ctx.clip();
+        
+        ctx.strokeStyle = "black";
+        ctx.stroke();
+        
+        ctx.restore();
+    }
+
+///////////////////////////////////////////////////////////////////
+
+    canvas.addEventListener("mousedown", (e) => {
+        const mouseX = e.clientX - canvas.getBoundingClientRect().left;
+        const mouseY = e.clientY - canvas.getBoundingClientRect().top;
+
+        if (e.button === 0) { // Tasto sinistro
+            selectedRect = findSelectedObject(mouseX, mouseY);
+            if(selectedRect){
+                if( mouseX < selectedRect.x + selectedRect.width + 10 && mouseX > selectedRect.x + selectedRect.width - 10 && mouseY < selectedRect.y + selectedRect.height + 10 && mouseY > selectedRect.y + selectedRect.height - 10){
+                    isResizingBottomRight = true;
+                    lastMouseX = mouseX;
+                    lastMouseY = mouseY;
+                }else{
+                    isDragging = true;
+                    lastMouseX = mouseX;
+                    lastMouseY = mouseY;
+                }
+            }
+        } else if(e.button === 2){  //tasto destro
+            selectedRect = findSelectedObject(mouseX, mouseY);
+            if(selectedRect){
+                isDraggingView = true;
+                lastMouseX = mouseX;
+                lastMouseY = mouseY;
+            }
+        }
+        e.preventDefault();
+    });
+
+    function findSelectedObject(x, y) {
+        "use strict";
+        let offset = 10;
+        for (let i = objects.length - 1; i >= 0; i--) {
+            const rect = objects[i];
+            if(rect.width >= 0){
+                if(rect.height >= 0){
+                    if ( x >= rect.x && x <= rect.x + rect.width + offset && y >= rect.y && y <= rect.y + rect.height + offset ) return rect;
+                }else{
+                    if ( x >= rect.x && x <= rect.x + rect.width + offset && y <= rect.y && y >= rect.y + rect.height - offset ) return rect;
+                }
+            }else{
+                if(rect.height >= 0){
+                    if ( x <= rect.x && x >= rect.x + rect.width - offset && y >= rect.y && y <= rect.y + rect.height + offset ) return rect;
+                }else{
+                    if ( x <= rect.x && x >= rect.x + rect.width - offset && y <= rect.y && y >= rect.y + rect.height - offset ) return rect;
+                }
+            }
+        }
+        return null;
+    }
+
+    function findBelowObject(rect){
+        "use strict";
+        for (let i = objects.length - 1; i >= 0; i--) {
+            const object = objects[i];
+            if(object.id != rect.id){
+                if ( 
+                    rect.x + rect.width > object.x && // Lato destro del rettangolo 1 > Lato sinistro del rettangolo 2
+                    rect.x < object.x + object.width && // Lato sinistro del rettangolo 1 < Lato destro del rettangolo 2
+                    rect.y + rect.height > object.y && // Lato inferiore del rettangolo 1 > Lato superiore del rettangolo 2
+                    rect.y < object.y + object.height // Lato superiore del rettangolo 1 < Lato inferiore del rettangolo 2
+                 ) {
+                    return object;
+                }
+                if ( 
+                    object.x + object.width > rect.x && // Lato destro del rettangolo 2 > Lato sinistro del rettangolo 1
+                    object.x < rect.x + rect.width && // Lato sinistro del rettangolo 2 < Lato destro del rettangolo 1
+                    object.y + object.height > rect.y && // Lato inferiore del rettangolo 2 > Lato superiore del rettangolo 1
+                    object.y < rect.y + rect.height // Lato superiore del rettangolo 2 < Lato inferiore del rettangolo 1
+                 ) {
+                    return object;
+                }
+            }
+        }
+        return null;
+    }
+
+    function clearRectangle(rect){
+        "use strict";
+        if(rect.width < 0){
+            if(rect.height >= 0){
+                ctx.clearRect(rect.x + rect.width, rect.y, rect.x, rect.y + rect.height);
+            }else{
+                ctx.clearRect(rect.x + rect.width, rect.y + rect.height, rect.x, rect.y);
+            }
+        }else{
+            if(rect.height >= 0){
+                ctx.clearRect(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
+            }else{
+                ctx.clearRect(rect.x, rect.y + rect.height, rect.x + rect.width, rect.y);
+            }
+        }
+    }
+
+    function resizeRect(rect, mouseX, mouseY) {
+        "use strict";
+        clearRectangle(rect);
+
+        rect.gridXfin += mouseX - lastMouseX;
+        rect.gridYfin += mouseY - lastMouseY;
+        rect.width += mouseX - lastMouseX;
+        rect.height += mouseY - lastMouseY;
+        //drawRectangle(rect);
+        drawRectanglePerimeter(rect);
+    }
+
+    function dragView(rect, mouseX, mouseY){
+        "use strict";
+        clearRectangle(rect);
+        rect.offsetViewX += mouseX - lastMouseX;
+        rect.offsetViewY += mouseY - lastMouseY;
+        //drawRectangle(rect);
+        drawRectanglePerimeter(rect);
+    }
+
+    function dragRectangle(rect, mouseX, mouseY){
+        "use strict";
+        let dx = mouseX - lastMouseX;
+        let dy = mouseY - lastMouseY;
+        clearRectangle(rect);
+        rect.moveRect(dx, dy);
+        //drawRectangle(rect);
+        drawRectanglePerimeter(rect);
+    }
+
+    function zoomView(rect, delta){
+        "use strict";
+        clearRectangle(selectedRect);
+        const scale = delta > 0 ? -1 : 1;
+        selectedRect.zoom(scale);
+        //drawRectangle(rect);
+        drawRectanglePerimeter(rect);
+    }
+
+    var contatore = 0;
+    canvas.addEventListener("mousemove", (e) => {
+        const mouseX = e.clientX - canvas.getBoundingClientRect().left;
+        const mouseY = e.clientY - canvas.getBoundingClientRect().top;
+        
+        if (isDragging) {
+            if (selectedRect) {
+                dragRectangle(selectedRect, mouseX, mouseY);
+            }
+        } else if (isDraggingView) {
+            if (selectedRect) {
+                dragView(selectedRect, mouseX, mouseY);
+            }
+            
+        }else if(isResizingBottomRight){
+            if(selectedRect){
+                resizeRect(selectedRect, mouseX, mouseY);
+            }
+            
+        }
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+        e.preventDefault();
+    });
+
+    canvas.addEventListener("mouseup", () => {
+        isDragging = false;
+        isDraggingView = false;
+        isResizingBottomRight = false;
+        selectedRect = findSelectedObject(lastMouseX, lastMouseY);
+        if(selectedRect){
+            drawRectangle(selectedRect);
+        }
+    });
+
+    canvas.addEventListener("wheel", (e) => {
+        clearTimeout(timer);
+        if (selectedRect) {
+            zoomView(selectedRect, e.deltaY);
+            timer = setTimeout(function() {drawRectangle(selectedRect);}, 300);
+        }
+        e.preventDefault();
+    });
+
+    canvas.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+    });
+</script>
+</html>
