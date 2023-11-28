@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"> 
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script> 
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    </head>
+        <div style="text-align: center; align-items: center; width:93vw; margin-top: 20px; margin-left:3.5vw ;">
+            <form id="f1">
+                <div class="form-group">
+                    <table align="center">
+                        <tr>
+                            <td><label for="select Option" style="margin-right: 10px;">Select Option:</label> </td>
+                            <td>
+                                <select class="form-select" id="selectOption" style="max-width: 25vw; margin-right: 3vw;"> 
+                                    <option value="option1">General Brawnian Motion</option> 
+                                    <option value="option2">Standard Brawnian Motion</option> 
+                                    <option value="option4">Geometric Brawnian Motion</option> 
+                                    <option value="option3">Ornstein Uhlenbeck</option> 
+                                    <option value="option5">Vasicek Model</option> 
+                                    <option value="option6">Bernoulli</option>      
+                                    <option value="option7">Randomwalk</option>
+                                    <option value="option8">Poisson</option>                      
+                                </select> 
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label id="labelnumberN" for="numberN" style="margin-right: 10px;">N:</label></td>
+                            <td><input type="text" class="form-control" style="max-width: 25vw; margin-right: 3vw;" id="numberN" placeholder="Insert the number of intervals:" required value="30"> </td>
+                        
+                        </tr>
+                        <tr>
+                            <td><label id="labelnumberM" for="numberM" style="margin-right: 10px;">M:</label></td>
+                            <td><input type="text" class="form-control" style="max-width: 25vw; margin-right: 3vw;" id="numberM" placeholder="Insert the number of systems:" required value="20"> </td>
+                        </tr>  
+                        <tr>
+                            <td><label id="labelProbability" for="Probability" style="margin-right: 10px;">Probability:</label></td>
+                            <td><input type="text" class="form-control" style="max-width: 25vw; margin-right: 3vw;" id="Probability" placeholder="Insert the attack ratio:" required value="0.5"> </td>
+                        </tr> 
+                        <tr>
+                            <td><label id="labelnumberA" for="numberA" style="margin-right: 10px;">Attack Histogram:</label></td>
+                            <td><input type="text" class="form-control" style="max-width: 25vw; margin-right: 3vw;" id="numberA" placeholder="Insert attack's number for the instogram:" required value="10"> </td>
+                        </tr> 
+                        <tr>
+                            <td><label id="labelLambda" for="Lambda" style="margin-right: 10px;">Lambda:</label></td>
+                            <td><input type="text" class="form-control" style="max-width: 25vw; margin-right: 3vw;" id="Lambda" placeholder="Insert the value of Lambda:" required value="10"> </td>
+                        </tr>
+                        <tr>
+                            <td><label id="labelsigmaValue" for="sigmaValue" style="margin-right: 10px;">Sigma:</label></td>
+                            <td><input type="text" class="form-control" style="max-width: 25vw; margin-right: 3vw;" id="sigmaValue" placeholder="Insert the value of sigma:" required value="0.2"> </td>
+                        </tr> 
+                        <tr>
+                            <td><label id="labelmuValue" for="muValue" style="margin-right: 10px;">Mu:</label></td>
+                            <td><input type="text" class="form-control" style="max-width: 25vw; margin-right: 3vw;" id="muValue" placeholder="Insert the value of Mu:" required value="0.1"> </td>
+                        </tr>
+                        <tr>
+                            <td><label id="labelthetaValue" for="thetaValue" style="margin-right: 10px;">Theta:</label></td>
+                            <td><input type="text" class="form-control" style="max-width: 25vw; margin-right: 3vw;" id="thetaValue" placeholder="Insert the value of Theta:" required value="0.1"> </td>
+                        </tr>
+                        <tr>
+                            <td><label id="labelkValue" for="kValue" style="margin-right: 10px;">K:</label></td>
+                            <td><input type="text" class="form-control" style="max-width: 25vw; margin-right: 3vw;" id="kValue" placeholder="Insert the value of K:" required value="0.1"> </td>
+                        </tr>
+                    </table> 
+                    <br>
+                    <div style="display: flex; align-items: center;"></div>
+                    <button type="button" class="btn btn-primary" style="color: white;" onclick="collectData()"> Send </button>
+                    </div> 
+                    <br>
+                    <canvas id="myCanvas" style="background-color: rgb(240 240 200 / 50%); align-self: center;"></canvas> 
+                </div>
+                <br>
+            </form>
+        </div>
+    </body>
+        <script>
+
+            function showOrHideInput(numberN, numberM, Probability, numberA, Lambda, sigmaValue, muValue, thetaValue, kValue){
+                document.getElementById("numberN").disabled = numberN;
+                document.getElementById("numberM").disabled = numberM;
+                document.getElementById("Probability").disabled = Probability;
+                document.getElementById("numberA").disabled = numberA;
+                document.getElementById("Lambda").disabled = Lambda;
+                document.getElementById("sigmaValue").disabled = sigmaValue;
+                document.getElementById("muValue").disabled = muValue;
+                document.getElementById("thetaValue").disabled = thetaValue;
+                document.getElementById("kValue").disabled = kValue;
+
+                if(!numberN){
+                    document.getElementById("numberN").style.display = "block";
+                    document.getElementById("labelnumberN").style.display = "block";
+                }else{
+                    document.getElementById("numberN").style.display = "none";
+                    document.getElementById("labelnumberN").style.display = "none";
+                }
+
+                if(!numberM){
+                    document.getElementById("numberM").style.display = "block";
+                    document.getElementById("labelnumberM").style.display = "block";
+                }else{
+                    document.getElementById("numberM").style.display = "none";
+                    document.getElementById("labelnumberM").style.display = "none";
+                }
+
+                if(!Probability){
+                    document.getElementById("Probability").style.display = "block";
+                    document.getElementById("labelProbability").style.display = "block";
+                }else{
+                    document.getElementById("Probability").style.display = "none";
+                    document.getElementById("labelProbability").style.display = "none";
+                }
+
+                if(!numberA){
+                    document.getElementById("numberA").style.display = "block";  
+                    document.getElementById("labelnumberA").style.display = "block";   
+                }else{
+                    document.getElementById("numberA").style.display = "none";  
+                    document.getElementById("labelnumberA").style.display = "none";  
+                }
+
+                if(!Lambda){
+                    document.getElementById("Lambda").style.display = "block";
+                    document.getElementById("labelLambda").style.display = "block";
+                }else{
+                    document.getElementById("Lambda").style.display = "none";
+                    document.getElementById("labelLambda").style.display = "none";
+                }
+
+                if(!sigmaValue){
+                    document.getElementById("sigmaValue").style.display = "block";  
+                    document.getElementById("labelsigmaValue").style.display = "block";  
+                }else{
+                    document.getElementById("sigmaValue").style.display = "none";  
+                    document.getElementById("labelsigmaValue").style.display = "none"; 
+                }
+
+                if(!muValue){
+                    document.getElementById("muValue").style.display = "block"; 
+                    document.getElementById("labelmuValue").style.display = "block"; 
+                }else{
+                    document.getElementById("muValue").style.display = "none"; 
+                    document.getElementById("labelmuValue").style.display = "none"; 
+                }
+
+                if(!thetaValue){
+                    document.getElementById("thetaValue").style.display = "block"; 
+                    document.getElementById("labelthetaValue").style.display = "block";
+
+                }else{
+                    document.getElementById("thetaValue").style.display = "none"; 
+                    document.getElementById("labelthetaValue").style.display = "none";
+                }
+
+                if(!kValue){
+                    document.getElementById("kValue").style.display = "block"; 
+                    document.getElementById("labelkValue").style.display = "block";
+
+                }else{
+                    document.getElementById("kValue").style.display = "none"; 
+                    document.getElementById("labelkValue").style.display = "none";
+                }
+            }
+
+            let option = document.getElementById("selectOption").value;
+            if(option == "option6"){    //bernoulli N, M, P
+                showOrHideInput(false, false, false, false, true, true, true, true, true);     
+            }
+            if(option == "option7"){ //randomwalk N, M, P
+                showOrHideInput(false, false, false, false, true, true, true, true, true);
+            }
+            if(option == "option8"){ //general brawnian motion N, M, P
+                showOrHideInput(false, false, false, false, true, true, true, true, true); 
+            }
+            if(option == "option1"){ //poisson N, M, lambda
+                showOrHideInput(false, false, true, false, false, true, true, true, true);        
+            }
+            if(option == "option2"){ //standard brawnian motion N, M, P
+                showOrHideInput(false, false, false, false, true, true, true, true, true);    
+            }
+            if(option == "option3"){ //geometric brawnian motion N, M, P, mu, sigma
+                showOrHideInput(false, false, false, false, true, false, false, true, true);      
+            }
+            if(option == "option4"){ // N, M, P, mu, sigma, theta
+                showOrHideInput(false, false, false, false, true, false, false, false, true);      
+            }
+            if(option == "option5"){ // N, M, P, mu, sigma, theta, k
+                showOrHideInput(false, false, false, false, true, false, true, false, false);      
+            }
+            document.getElementById("selectOption").addEventListener("change", function() {
+                let option = document.getElementById("selectOption").value;
+                if(option == "option6"){    //bernoulli N, M, P
+                    showOrHideInput(false, false, false, false, true, true, true, true, true);  
+                }
+                if(option == "option7"){ //randomwalk N, M, P
+                    showOrHideInput(false, false, false, false, true, true, true, true, true);
+                }
+                if(option == "option8"){ //general brawnian motion N, M, P
+                    showOrHideInput(false, false, false, false, true, true, true, true, true); 
+                }
+                if(option == "option1"){ //poisson N, M, lambda
+                    showOrHideInput(false, false, true, false, false, true, true, true, true);
+                }
+                if(option == "option2"){ //standard brawnian motion N, M, P
+                    showOrHideInput(false, false, false, false, true, true, true, true, true);
+                }
+                if(option == "option3"){ //geometric brawnian motion N, M, P, mu, sigma
+                    showOrHideInput(false, false, false, false, true, false, false, true, true);
+                }
+                if(option == "option4"){ // N, M, P, mu, sigma, theta
+                    showOrHideInput(false, false, false, false, true, false, false, false, true);      
+                }
+                if(option == "option5"){ // N, M, P, mu, sigma, theta, k
+                    showOrHideInput(false, false, false, false, true, false, true, false, false);      
+                }
+            });
+        </script>
+        <script>
+            "use strict";
+            function setCanvasWidthToScreenWidth() {
+                "use strict";
+                const canvas = document.getElementById('myCanvas');
+                const screenWidth = window.innerWidth * 0.9;
+                const screenHeight = window.innerHeight;
+        
+                canvas.width = screenWidth;
+                canvas.height = screenHeight;
+            }
+        
+            window.addEventListener('load', () => {
+                setCanvasWidthToScreenWidth();
+            });
+        
+            window.addEventListener('resize', setCanvasWidthToScreenWidth);
+        </script>
+        
+        <script>
+        
+            class Rect {
+                constructor(x, y, width, height, idRect) {
+                    this.x = x;
+                    this.y = y;
+                    this.width = width;
+                    this.height = height;
+                    this.gridSpacing = 8;
+                    this.gridXini = x;
+                    this.gridXfin = x + width;
+                    this.gridYini = y;
+                    this.gridYfin = y + height;
+                    this.offsetViewX = 0.0;
+                    this.offsetViewY = 0.0;
+                    this.id = idRect;
+                    this.gxi = 0;
+                    this.gxf = 0;
+                    this.gyi = 0;
+                    this.gyf = 0;
+                }
+                
+                drawGridLines(x1, y1, x2, y2, color) {
+                 ctx.beginPath();
+                 ctx.moveTo(x1, y1);
+                 ctx.lineTo(x2, y2);
+                 ctx.strokeStyle = color;
+                 ctx.stroke();
+                }
+        
+                draw() {
+                    let numRows = 2 * N;
+                    let numCols = N;
+                    if(!continuosOptions.includes(selectOption.value)){
+                        this.drawGrid(this.gridXini, this.gridXfin, this.gridYini, this.gridYfin, numRows, numCols, Math.abs((this.gridYfin-this.gridYini)/numRows), Math.abs((this.gridXfin-this.gridXini)/numCols));
+                    }else{
+                        this.drawGrid(this.gxi, this.gxf, this.gyi, this.gyf, numRows, numCols, Math.abs((this.gridYfin-this.gridYini)/numRows), Math.abs((this.gridXfin-this.gridXini)/numCols));
+                    }
+                    drawChart(this);
+                    drawRectanglePerimeter(this);
+                    drawHistogram(this,A, dataForHistogram, labelsForHistogram);
+                    drawHistogram(this, N, dataForHistogramFine, labelsForHistogramFine);
+                    if(!continuosOptions.includes(selectOption.value)){
+                        this.drawAxes(this.gridXini, this.gridXfin, this.gridYini, this.gridYfin);
+                    }else{
+                        this.drawAxes(this.gxi, this.gxf, this.gyi, this.gyf);
+                    }
+                }
+        
+                drawGrid(gridXini, gridXfin, gridYini, gridYfin, numRows, numCols, dimRows, dimCols) {
+                    const gridSize = this.gridSpacing;
+        
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(this.x, this.y, this.width, this.height);
+                    ctx.clip();
+        
+                    if(gridYini + this.offsetViewY < gridYfin + this.offsetViewY){
+                        for (let y = gridYini + this.offsetViewY; y <= gridYfin + this.offsetViewY; y += dimRows) {
+                            let xGrigliaSx = gridXini + this.offsetViewX;
+                            let xGrigliaDx = gridXfin + this.offsetViewX;
+        
+                            let ris = drawInsideRectangle(this, xGrigliaSx, y, xGrigliaDx, y);
+                            if(ris != null){
+                                ctx.beginPath();
+                                ctx.moveTo(ris[0], ris[1]);
+                                ctx.lineTo(ris[2], ris[3]);
+                                ctx.strokeStyle = 'white';
+                                ctx.stroke();
+                            }
+                        }
+                    }else{
+                        for (let y = gridYfin + this.offsetViewY; y <= gridYini + this.offsetViewY; y += dimRows) {
+                            let xGrigliaSx = gridXini + this.offsetViewX;
+                            let xGrigliaDx = gridXfin + this.offsetViewX;
+        
+                            let ris = drawInsideRectangle(this, xGrigliaSx, y, xGrigliaDx, y);
+                            if(ris != null){
+                                ctx.beginPath();
+                                ctx.moveTo(ris[0], ris[1]);
+                                ctx.lineTo(ris[2], ris[3]);
+                                ctx.strokeStyle = 'white';
+                                ctx.stroke();
+                            }
+                        }
+                    }
+        
+                    if(gridXini + this.offsetViewX < gridXfin + this.offsetViewX){
+                        for (let x = gridXini + this.offsetViewX; x <= gridXfin + this.offsetViewX; x += dimCols) {
+                            let yGrigliaSopra = gridYini + this.offsetViewY;
+                            let yGrigliaSotto = gridYfin + this.offsetViewY;
+        
+                            let ris = drawInsideRectangle(this, x, yGrigliaSopra, x, yGrigliaSotto);
+                            if(ris != null){
+                                ctx.beginPath();
+                                ctx.moveTo(ris[0], ris[1]);
+                                ctx.lineTo(ris[2], ris[3]);
+                                ctx.strokeStyle = 'white';
+                                ctx.stroke();
+                            }
+                        }
+                    }else{
+                        for (let x = gridXfin + this.offsetViewX; x <= gridXini + this.offsetViewX; x += dimCols) {
+                            let yGrigliaSopra = gridYini + this.offsetViewY;
+                            let yGrigliaSotto = gridYfin + this.offsetViewY;
+        
+                            let ris = drawInsideRectangle(this, x, yGrigliaSopra, x, yGrigliaSotto);
+                            if(ris != null){
+                                ctx.beginPath();
+                                ctx.moveTo(ris[0], ris[1]);
+                                ctx.lineTo(ris[2], ris[3]);
+                                ctx.strokeStyle = 'black';
+                                ctx.stroke();
+                            }
+                        }
+                    }
+                    ctx.restore();
+                    
+                }
+        
+                drawAxes(gridXini, gridXfin, gridYini, gridYfin) {
+                    ctx.strokeStyle = 'black';
+                    ctx.lineWidth = 2;
+        
+                    ctx.save();
+    
+                    ctx.beginPath();
+                    ctx.rect(this.x, this.y, this.width, this.height);
+                    ctx.clip();
+        
+                    const startX = gridXini + this.offsetViewX;
+                    const endX = gridXfin + this.offsetViewX;
+                    const centerY = (gridYini + gridYfin) / 2 + this.offsetViewY;
+        
+                    let ris = drawInsideRectangle(this, startX, centerY, endX, centerY);
+                    if(ris != null){
+                        // Horizontal axis
+                        ctx.beginPath();
+                        ctx.moveTo(ris[0], ris[1]);
+                        ctx.lineTo(ris[2], ris[3]);
+                        ctx.stroke();
+                    }
+        
+                    ctx.restore();
+                    
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(this.x, this.y, this.width, this.height);
+                    ctx.clip();
+        
+                    const startY = gridYini + this.offsetViewY;
+                    const endY = gridYfin + this.offsetViewY;
+                    const originX = gridXini + this.offsetViewX;
+        
+                    ris = drawInsideRectangle(this, originX, startY, originX, endY);
+                    if(ris != null){
+                    // Vertical axis
+                    ctx.beginPath();
+                    ctx.moveTo(ris[0], ris[1]);
+                    ctx.lineTo(ris[2], ris[3]);
+                    ctx.stroke();
+                    }
+        
+                    ctx.restore();
+                }
+        
+                zoom(scale) {
+                    if(!continuosOptions.includes(selectOption.value)){
+                        let fattoreScala = (this.gridXfin-this.gridXini)/(this.gridYfin - this.gridYini) * N;
+                        if(this.gridXini - fattoreScala*scale < this.gridXfin + fattoreScala*scale){
+                            this.gridXini -= fattoreScala*scale;
+                            this.gridXfin += fattoreScala*scale;
+                        }
+                        if(this.gridYini - fattoreScala*scale < this.gridYfin + fattoreScala*scale){
+                            this.gridYini -= fattoreScala*scale;
+                            this.gridYfin += fattoreScala*scale;
+                        }
+                    }else{
+                        let fattoreScala = (this.gridXfin-this.gridXini)/(this.gridYfin - this.gridYini) * N;
+                        if(this.gridXini - fattoreScala*scale < this.gridXfin + fattoreScala*scale){
+                            this.gridXini -= fattoreScala*scale;
+                            this.gridXfin += fattoreScala*scale;
+                            this.gxi -= fattoreScala*scale;
+                            this.gxf += fattoreScala*scale;
+                        }
+                        if(this.gridYini - fattoreScala*scale < this.gridYfin + fattoreScala*scale){
+                            this.gridYini -= fattoreScala*scale;
+                            this.gridYfin += fattoreScala*scale;
+                            this.gyi -= fattoreScala*scale;
+                            this.gyf += fattoreScala*scale;
+                        }
+                    }
+                }
+        
+                moveRect(dx, dy) {
+                    if(!continuosOptions.includes(selectOption.value)){
+                        if(this.x + dx >= 0 && this.y + dy >= 0 && this.x + this.width + dx <= canvas.width && this.y + this.height + dy <= canvas.height){
+                            this.x += dx;
+                            this.y += dy;
+                            this.gridXini += dx;
+                            this.gridXfin += dx;
+                            this.gridYini += dy;
+                            this.gridYfin += dy;
+                        }
+                    }else{
+                        if(this.x + dx >= 0 && this.y + dy >= 0 && this.x + this.width + dx <= canvas.width && this.y + this.height + dy <= canvas.height){
+                            this.x += dx;
+                            this.y += dy;
+                            this.gridXini += dx;
+                            this.gridXfin += dx;
+                            this.gridYini += dy;
+                            this.gridYfin += dy;
+                            this.gxi += dx;
+                            this.gxf += dx;
+                            this.gyi += dy;
+                            this.gyf += dy;
+                        }
+                    }
+                }
+            }
+        
+            const canvas = document.getElementById("myCanvas");
+            const ctx = canvas.getContext("2d");
+        
+            let isDragging = false;
+            let isDraggingView = false;
+            let isResizingBottomRight = false;
+            let selectedRect = null;
+            let lastMouseX, lastMouseY;
+            let timer = null;
+        
+            const objects = [];
+        
+            var N = 0;
+            var M = 0;
+            var lambda = 0;
+            var A = 0;
+            var P = 0;
+            var theta = 0;
+            var muV = 0;
+            var sigmaV = 0;
+            var dataCollector = [];
+            var drawDataset = [];
+            let colori = [];
+            var K = 0;
+        
+            var intervalsNumber = 20;
+            var count={};
+            var count3={};
+            var count4={};
+            var dataForHistogram;
+            var labelsForHistogram;
+            var dataForHistogramFine;
+            var labelsForHistogramFine;
+            let maxRows = 0;
+            let continuosOptions = ["option8", "option2", "option3", "option4", "option5"];
+                
+            const rect2 = new Rect(80, 30, window.innerWidth * 0.8, window.innerHeight * 0.5, 2);
+        
+            objects.push(rect2);
+        
+            function drawRectangle(rect) {
+                "use strict";
+                rect.draw();
+            }
+        
+        ///////////////////////////////////////////////////////////////////
+        ////                        spazio                             ////
+        ///////////////////////////////////////////////////////////////////                                                        
+        
+            function histogramData(pos){
+                "use strict";
+                if(!continuosOptions.includes(selectOption.value)){
+                    count={};
+                    var errore = 0;
+                    for(var m = 0; m < M; m++){
+                        for(var c=-N; c<(N); c++){
+                            var inizio = (c).toFixed(1);
+                            var fine = (c+1).toFixed(1);
+                            var key = `${inizio}/${fine}`;
+                            if(dataCollector[m][1][pos-1]>=inizio && dataCollector[m][1][pos-1]<fine){
+                                if (count[key]) {
+                                    count[key] += 1;
+                                } else {
+                                    count[key] = 1;
+                                }
+                            }else if(dataCollector[m][1][pos-1] == fine){
+                                if(pos == N){
+                                    if(dataCollector[m][1][pos-1] == pos){
+                                        if (count[`${fine}/${fine+1}`]) {
+                                            count[`${fine}/${fine+1}`] += 1;
+                                        } else {
+                                            count[`${fine}/${fine+1}`] = 1;
+                                        }
+                                    }
+                                }
+                            }
+                        }          
+                    }
+                    if(pos != N){
+                        dataForHistogram = Object.values(count);
+                        labelsForHistogram = Object.keys(count);
+                    }else{
+                        dataForHistogramFine = Object.values(count);
+                        labelsForHistogramFine = Object.keys(count);
+                    }
+                }else{
+                    count={};
+                    let interval = 2;
+                    for(var m = 0; m < M; m++){
+                        for(var c=(-maxRows); c<(maxRows); c += interval){
+                            var inizio = (c).toFixed(2);
+                            var fine = (c+interval).toFixed(2);
+                            var key = `${inizio}/${fine}`;
+                            if(dataCollector[m][1][pos-1]>=inizio && dataCollector[m][1][pos-1]<fine){
+                                if (count[key]) {
+                                    count[key] += 1;
+                                } else {
+                                    count[key] = 1;
+                                }
+                            }else if(dataCollector[m][1][pos-1] == fine){
+                                if(pos == N){
+                                    if(dataCollector[m][1][pos-1] == pos){
+                                        if (count[`${fine}/${fine+1}`]) {
+                                            count[`${fine}/${fine+1}`] += 1;
+                                        } else {
+                                            count[`${fine}/${fine+1}`] = 1;
+                                        }
+                                    }
+                                }
+                            }
+                        }          
+                    }
+                    if(pos != N){
+                        dataForHistogram = Object.values(count);
+                        labelsForHistogram = Object.keys(count);
+                    }else{
+                        dataForHistogramFine = Object.values(count);
+                        labelsForHistogramFine = Object.keys(count);
+                    }
+                }
+            }
+
+            function findMinandMax(){
+                let min = parseFloat("Infinity");
+                let max = -parseFloat("Infinity");
+                if(continuosOptions.includes(selectOption.value)){
+                    for(let m = 0; m < M; m++){
+                        for(let n = 0; n < N; n++){
+                            if(dataCollector[m][1][n] > max){
+                                max = dataCollector[m][1][n];
+                            }
+                            if(dataCollector[m][1][n] < min){
+                                min = dataCollector[m][1][n];
+                            }
+                        }
+                    }
+                }   
+
+                if(Math.abs(Math.ceil(min)-1) > Math.abs(Math.ceil(max))){
+                    return Math.abs(Math.ceil(min)-1);
+                }else{
+                    return Math.abs(Math.ceil(max));
+                }
+            }
+
+            function collectData(){
+                "use strict";
+                N = parseInt(document.getElementById("numberN").value);
+                M = parseInt(document.getElementById("numberM").value);
+                P = parseFloat(document.getElementById("Probability").value);
+                A = parseInt(document.getElementById("numberA").value);
+                lambda = parseInt(document.getElementById("Lambda").value);
+                muV = parseFloat(document.getElementById("muValue").value);
+                sigmaV = parseFloat(document.getElementById("sigmaValue").value);
+                theta = parseFloat(document.getElementById("thetaValue").value);
+                K = parseFloat(document.getElementById("kValue").value);
+
+                dataCollector=[new Array(M).fill(0)];
+                drawDataset = [];
+                for(let i = 0; i < N; i++){
+                    drawDataset[i] = [];
+                }
+                for(let i = 0; i < N; i++){
+                    for(let i = 0; i < N; i++){
+                        drawDataset[i].push(0);
+                    }
+                }
+        
+                for (let m = 0; m < M; m++) {
+                    dataCollector[m]=[new Array(M).fill(0)];
+                    var data2 = [];
+                    var counter = new Array(N).fill(0);
+        
+                    for (let n = 0; n < N; n++) {
+                        const randomNumber = Math.random();
+                    
+                        var result2 = 0;
+                        
+                        if(selectOption.value=="option6"){
+                            if(randomNumber <= P){
+                                result2 = 1;
+                            }else{
+                                result2 = 0;
+                            }
+                        }
+
+                        if(selectOption.value=="option7"){
+                            if(randomNumber <= P){
+                                result2 = 1;
+                            }else{
+                                result2 = -1;
+                            }
+                        }
+
+                        if(selectOption.value=="option1"){  //general brawnian motion
+                            const mu = N * P;
+                            const sigma = Math.sqrt(N * P * (1 - P));
+                            const u1 = Math.random();
+                            const u2 = Math.random();
+                            const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+                            let ris = mu + sigma * z;
+                            if(randomNumber <= P){
+                                result2 = (1/Math.sqrt(N))*ris;
+                            }else{
+                                result2 = -(1/Math.sqrt(N))*ris;
+                            }
+                        }
+
+                        if(selectOption.value=="option8"){  //Poisson
+                            P = lambda / N;
+                            if(randomNumber <= P){
+                                result2 = 1;
+                            }else{
+                                result2 = 0;
+                            }
+                        }
+
+                        if(selectOption.value=="option2"){  //standard brawnian motion
+                            const u1 = Math.random();
+                            const u2 = Math.random();
+                            const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+                            
+                            if(randomNumber <= P){
+                                result2 = z;
+                            }else{
+                                result2 = -z;
+                            }
+                        }
+
+                        if(selectOption.value=="option3"){  //geometric brawnian motion
+                            const u1 = Math.random(); 
+                            const u2 = Math.random(); 
+                            const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2); 
+                            const deltaS = muV + sigmaV * z; 
+                            const ris = Math.exp(deltaS); 
+                            if (randomNumber <= P) { 
+                                result2 = ris; 
+                            } else { 
+                                result2 = -ris; 
+                            }
+                            
+                        }
+
+                        if(selectOption.value=="option4"){  //Ornstein–Uhlenbeck
+                            const u1 = Math.random(); 
+                            const u2 = Math.random(); 
+                            const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2); 
+
+                            let delta = theta * (muV) + sigmaV * z;
+                            if(n!=0){
+                                delta = theta * (muV - data2[n-1]) + sigmaV * z;
+                            }
+                            
+                            if (randomNumber <= P) { 
+                                result2 = 1 + delta; 
+                            }
+                        }
+
+                        if(selectOption.value=="option5"){  //Vasicek Model
+                            const u1 = Math.random(); 
+                            const u2 = Math.random(); 
+                            const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2); 
+
+                            let delta = K * theta + sigmaV * z;
+                            if(n!=0){
+                                delta = K * (theta - data2[n-1]) + sigmaV * z;
+                            }
+                            
+                            if (randomNumber <= P) { 
+                                result2 = 1 + delta; 
+                            }
+                        }
+                        
+                        if(n==0){
+                            data2.push(result2);
+                        }else{
+                            data2.push(data2[n-1]+result2);
+                        }
+                    }
+                    dataCollector[m][1]=data2;
+                }
+        
+                for (let m = 0; m < M; m++) {
+                    var letters = '0123456789ABCDEF';
+                    var color = '#';
+                    for (let i = 0; i < 6; i++) {
+                        color += letters[Math.floor(Math.random() * 16)];
+                    }
+                    colori.push(color);
+                }
+
+                let min_max = findMinandMax();
+                maxRows = min_max;
+        
+                histogramData(A);
+                histogramData(N);
+
+
+                if(continuosOptions.includes(selectOption.value)){
+                    rect2.gxi = rect2.gridXini;
+                    rect2.gxf = rect2.gridXfin;
+                    rect2.gyi = rect2.gridYini - (((rect2.gridYfin-rect2.gridYini)/2)/N)*min_max;
+                    rect2.gyf = rect2.gridYfin + (((rect2.gridYfin-rect2.gridYini)/2)/N)*min_max;
+                }
+        
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                drawRectangle(rect2);
+            }
+        
+        ///////////////////////////////////////////////////////////////////
+        ////                        spazio                             ////
+        ///////////////////////////////////////////////////////////////////
+
+            function drawInsideRectangle(rect, x_ini, y_ini, x_fin, y_fin){
+                ris_x_ini = x_ini;
+                ris_y_ini = y_ini;
+                ris_x_fin = x_fin;
+                ris_y_fin = y_fin;
+                ris = null;
+            
+                if(rect.width >= 0){
+                    if(rect.height >= 0){
+                        if(x_ini < rect.x){
+                            ris_x_ini = rect.x;
+                        }
+                        if(x_fin > rect.w + rect.width){
+                            ris_x_fin = rect.x + rect.width;
+                        }
+                        if(y_ini < rect.y){
+                            ris_y_ini = rect.y;
+                        }
+                        if(y_fin > rect.y + rect.height){
+                            ris_y_fin = rect.y + rect.height;
+                        }
+                        ris = [ris_x_ini, ris_y_ini, ris_x_fin, ris_y_fin];
+                        if(x_ini < rect.x && x_fin < rect.x){
+                            ris = null;
+                        }
+                        if(x_ini > (rect.x + rect.width) && x_fin > (rect.x + rect.width)){
+                            ris = null;
+                        }
+                        if(y_ini < rect.y && y_fin < rect.y){
+                            ris = null;
+                        }
+                        if(y_ini > (rect.y + rect.height) && y_fin > (rect.y + rect.height)){
+                            ris = null;
+                        }
+                    }else{
+                        if(x_ini < rect.x){
+                            ris_x_ini = rect.x;
+                        }
+                        if(x_fin > rect.w + rect.width){
+                            ris_x_fin = rect.x + rect.width;
+                        }
+                        if(y_ini > rect.y){
+                            ris_y_ini = rect.y;
+                        }
+                        if(y_fin < rect.y + rect.height){
+                            ris_y_fin = rect.y + rect.height;
+                        }
+                        ris = [ris_x_ini, ris_y_ini, ris_x_fin, ris_y_fin];
+                        if(x_ini < rect.x && x_fin < rect.x){
+                            ris = null;
+                        }
+                        if(x_ini > (rect.x + rect.width) && x_fin > (rect.x + rect.width)){
+                            ris = null;
+                        }
+                        if(y_ini > rect.y && y_fin > rect.y){
+                            ris = null;
+                        }
+                        if(y_ini < (rect.y + rect.height) && y_fin < (rect.y + rect.height)){
+                            ris = null;
+                        }
+                    }
+                }else{
+                    if(rect.height >= 0){
+                        if(x_ini > rect.x){
+                            ris_x_ini = rect.x;
+                        }
+                        if(x_fin < rect.w + rect.width){
+                            ris_x_fin = rect.x + rect.width;
+                        }
+                        if(y_ini < rect.y){
+                            ris_y_ini = rect.y;
+                        }
+                        if(y_fin > rect.y + rect.height){
+                            ris_y_fin = rect.y + rect.height;
+                        }
+                        ris = [ris_x_ini, ris_y_ini, ris_x_fin, ris_y_fin];
+                        if(x_ini > rect.x && x_fin > rect.x){
+                            ris = null;
+                        }
+                        if(x_ini < (rect.x + rect.width) && x_fin < (rect.x + rect.width)){
+                            ris = null;
+                        }
+                        if(y_ini < rect.y && y_fin < rect.y){
+                            ris = null;
+                        }
+                        if(y_ini > (rect.y + rect.height) && y_fin > (rect.y + rect.height)){
+                            ris = null;
+                        }
+                    }else{
+                        if(x_ini > rect.x){
+                            ris_x_ini = rect.x;
+                        }
+                        if(x_fin < rect.w + rect.width){
+                            ris_x_fin = rect.x + rect.width;
+                        }
+                        if(y_ini > rect.y){
+                            ris_y_ini = rect.y;
+                        }
+                        if(y_fin < rect.y + rect.height){
+                            ris_y_fin = rect.y + rect.height;
+                        }
+                        ris = [ris_x_ini, ris_y_ini, ris_x_fin, ris_y_fin];
+                        if(x_ini > rect.x && x_fin > rect.x){
+                            ris = null;
+                        }
+                        if(x_ini < (rect.x + rect.width) && x_fin < (rect.x + rect.width)){
+                            ris = null;
+                        }
+                        if(y_ini > rect.y && y_fin > rect.y){
+                            ris = null;
+                        }
+                        if(y_ini < (rect.y + rect.height) && y_fin < (rect.y + rect.height)){
+                            ris = null;
+                        }
+                    }
+                }
+                return ris;
+            }
+        
+        ///////////////////////////////////////////////////////////////////
+        ////                        spazio                             ////
+        ///////////////////////////////////////////////////////////////////
+
+            function addIfAlreadyDraw(m, n, passoX, passoY, v){
+                if(!continuosOptions.includes(selectOption.value)){
+                    if(v == 0){
+                        if(dataCollector[m][1][n] - dataCollector[m][1][n-1] > 0){    
+                            let riga = dataCollector[m][1][n] - passoY;
+                            let colonna = n - passoX;
+                            drawDataset[riga][colonna] = 1;
+                        }
+                        if(dataCollector[m][1][n] - dataCollector[m][1][n-1] == 0){    
+                            let riga = dataCollector[m][1][n];
+                            let colonna = n - passoX;
+                            drawDataset[riga][colonna] = 1;
+                        }
+                        if(dataCollector[m][1][n] - dataCollector[m][1][n-1] < 0){    
+                            let riga = dataCollector[m][1][n] + passoY;
+                            let colonna = n - passoX;
+                            drawDataset[riga][colonna] = 1;
+                        }
+                    }else{
+                        drawDataset[dataCollector[m][1][n]][n] = 1;
+                    }
+                }
+            }
+
+            function checkIfAlreadyDraw(m, n, passoX, passoY){
+                if(!continuosOptions.includes(selectOption.value)){
+                    if(dataCollector[m][1][n] - dataCollector[m][1][n-1] > 0){    
+                        let riga = dataCollector[m][1][n] - passoY;
+                        let colonna = n - passoX;
+                        if(drawDataset[riga][colonna] == 0){
+                            drawDataset[riga][colonna] = 1;
+                            return true
+                        }
+                    }
+                    if(dataCollector[m][1][n] - dataCollector[m][1][n-1] == 0){    
+                        let riga = dataCollector[m][1][n];
+                        let colonna = n - passoX;
+                        if(drawDataset[riga][colonna] == 0){
+                            drawDataset[riga][colonna] = 1;
+                            return true;
+                        }
+                    }
+                    if(dataCollector[m][1][n] - dataCollector[m][1][n-1] < 0){    
+                        let riga = dataCollector[m][1][n] + passoY;
+                        let colonna = n - passoX;
+                        if(drawDataset[riga][colonna] == 0){
+                            drawDataset[riga][colonna] = 1;
+                            return true;
+                        }
+                    }
+                    return false;
+                }else{
+                    return false;
+                }
+            }
+
+            function drawn(m, n){
+                if(!continuosOptions.includes(selectOption.value)){
+                    if(drawDataset[dataCollector[m][1][n]][n] == 0){
+                        return true;
+                    }else{
+                        return false;
+                    }
+                }else{
+                    return true;
+                }
+            }
+
+            function drawHistogram(rect, pos, data, labels){
+                "use strict";
+                if(!continuosOptions.includes(selectOption.value)){
+                    let factorX = (rect.gridXfin - rect.gridXini)/N;
+                    let factorY = ((rect.gridYfin - rect.gridYini)/2)/N;
+                    let factorXHistogram = ((rect.gridXfin - rect.gridXini) / N);
+                    let barHeight = (((rect.gridYfin - rect.gridYini) / N) / 2.5);
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(rect.x, rect.y, rect.width, rect.height);
+                    ctx.clip();
+            
+                    if(rect.id == 2){
+                        for (let i = 0; i < data.length; i++) {
+                            var p = parseFloat((labels[i].split('/'))[0]);
+                            const barWidth  = (data[i] ) * factorXHistogram;
+            
+                            let x = (rect.gridXini + rect.offsetViewX) + (pos)*factorXHistogram;
+                            let y = (rect.gridYini + rect.offsetViewY) + (rect.gridYfin - rect.gridYini)/2 - barHeight - p*factorY;
+            
+                            ctx.fillStyle = "rgba(0, 0, 255, 0.8)"; 
+                            ctx.fillRect(x, y, barWidth, barHeight);
+                            ctx.fillStyle = "black";
+                            ctx.textAlign = "center";
+                            ctx.fillText(data[i], x, y);
+                            ctx.stroke();
+                        } 
+                    } 
+                    ctx.restore();
+                }else{
+                    let factorX = (rect.gridXfin - rect.gridXini)/N;
+                    let factorY = (((rect.gridYfin - rect.gridYini)/2)/N);
+                    let factorXHistogram = ((rect.gridXfin - rect.gridXini) / N);
+                    let barHeight = (factorY*2) - factorY/8; //added to make the height change with the zoom
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(rect.x, rect.y, rect.width, rect.height);
+                    ctx.clip();
+            
+                    if(rect.id == 2){
+                        for (let i = 0; i < data.length; i++) {
+                            var p = parseFloat((labels[i].split('/'))[0]);
+                            const barWidth  = (data[i]) * factorXHistogram;
+            
+                            let x = (rect.gridXini + rect.offsetViewX) + (pos)*factorXHistogram;
+                            let y = (rect.gridYini + rect.offsetViewY) + (rect.gridYfin - rect.gridYini)/2 - barHeight - p*factorY;
+            
+                            ctx.fillStyle = "rgba(0, 0, 255, 0.8)"; 
+                            ctx.fillRect(x, y, barWidth, barHeight);
+                            ctx.fillStyle = "black";
+                            ctx.textAlign = "center";
+                            ctx.fillText(data[i], x, y);
+                            ctx.stroke();
+                        } 
+                    } 
+                    ctx.restore();
+                }
+            }
+        
+            function drawChart(rect) {  
+                "use strict";     
+                drawDataset = [];
+                const passoX = 0.5;
+                const passoY = 0.5;
+                for(let i = -N; i <= N; i += passoY){
+                    drawDataset[i] = [];
+                    let arr = [];
+                    for(let j = 0; j <= N; j += passoX){
+                        arr[j] = 0;
+                    }
+                    drawDataset[i] = arr;
+                }
+                for(let i = -N; i <= N; i += passoY){
+                    for(let j = 0; j <= N; j += passoX){
+                        drawDataset[i][j] = 0;
+                    }
+                }
+        
+                let factorX = (rect.gridXfin - rect.gridXini)/N;
+                let factorY = ((rect.gridYfin - rect.gridYini)/2)/N;
+                for (let n = 0; n < N; n++) {            
+                    for(let m = 0; m < M; m++){
+                        if(drawn(m, n)){
+                            ctx.save();
+                            ctx.beginPath();
+                            ctx.rect(rect.x, rect.y, rect.width, rect.height);
+                            ctx.clip();
+                            ctx.strokeStyle = colori[m];
+                            let a = rect.gridXini + rect.offsetViewX;   //x_ini
+                            let b = rect.gridYini + rect.offsetViewY;   //y_ini
+                            let c = rect.gridYfin - rect.gridYini;      //height
+                            if(n==0){
+                                if(rect.id==2){
+                                    let ris = drawInsideRectangle(rect, n*factorX + a, b + c/2, (n+1)*factorX + a, -(dataCollector[m][1][n])*factorY + b + c/2);
+                                    addIfAlreadyDraw(m, n, passoX, passoY, 0)
+        
+                                    if(ris != null){
+                                        ctx.moveTo(ris[0], ris[1]);
+                                        ctx.lineTo(ris[2], ris[3]);
+                                        ctx.stroke();
+                                    }
+                                }
+                            }else{
+                                if(rect.id==2){
+                                    let ris = drawInsideRectangle(rect, n*factorX + a, -(dataCollector[m][1][n-1])*factorY + b + c/2, (n+1)*factorX + a, -(dataCollector[m][1][n])*factorY + b + c/2);
+                                    addIfAlreadyDraw(m, n, passoX, passoY, 0)
+                                    
+                                    if(ris != null){
+                                        ctx.moveTo(ris[0], ris[1]);
+                                        ctx.lineTo(ris[2], ris[3]);
+                                        ctx.stroke();
+                                    }
+                                }
+                            }
+                            addIfAlreadyDraw(m, n, passoX, passoY, 1)
+                            ctx.restore();
+                        }else{
+                            
+                            ctx.save();
+                            ctx.beginPath();
+                            ctx.rect(rect.x, rect.y, rect.width, rect.height);
+                            ctx.clip();
+                            ctx.strokeStyle = colori[m];
+                            let a = rect.gridXini + rect.offsetViewX;   //x_ini
+                            let b = rect.gridYini + rect.offsetViewY;   //y_ini
+                            let c = rect.gridYfin - rect.gridYini;      //height
+                            if(rect.id==2){
+                                if(checkIfAlreadyDraw(m, n, passoX, passoY)){
+                                    let ris = drawInsideRectangle(rect, n*factorX + a, -(dataCollector[m][1][n-1])*factorY + b + c/2, (n+1)*factorX + a, -(dataCollector[m][1][n])*factorY + b + c/2);
+                                    if(ris != null){
+                                        ctx.moveTo(ris[0], ris[1]);
+                                        ctx.lineTo(ris[2], ris[3]);
+                                        ctx.stroke();
+                                    }
+                                }
+                            }
+                            ctx.restore();
+                        }
+                    }
+                }
+            }
+        
+            function drawRectanglePerimeter(rect) {    
+                "use strict";   
+        
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(rect.x, rect.y, rect.width, rect.height);
+                ctx.clip();
+                
+                ctx.strokeStyle = "black";
+                ctx.stroke();
+                
+                ctx.restore();
+            }
+        
+        ///////////////////////////////////////////////////////////////////
+        
+            canvas.addEventListener("mousedown", (e) => {
+                const mouseX = e.clientX - canvas.getBoundingClientRect().left;
+                const mouseY = e.clientY - canvas.getBoundingClientRect().top;
+        
+                if (e.button === 0) { // Tasto sinistro
+                    selectedRect = findSelectedObject(mouseX, mouseY);
+                    if(selectedRect){
+                        if( mouseX < selectedRect.x + selectedRect.width + 10 && mouseX > selectedRect.x + selectedRect.width - 10 && mouseY < selectedRect.y + selectedRect.height + 10 && mouseY > selectedRect.y + selectedRect.height - 10){
+                            isResizingBottomRight = true;
+                            lastMouseX = mouseX;
+                            lastMouseY = mouseY;
+                        }else{
+                            isDragging = true;
+                            lastMouseX = mouseX;
+                            lastMouseY = mouseY;
+                        }
+                    }
+                } else if(e.button === 2){  //tasto destro
+                    selectedRect = findSelectedObject(mouseX, mouseY);
+                    if(selectedRect){
+                        isDraggingView = true;
+                        lastMouseX = mouseX;
+                        lastMouseY = mouseY;
+                    }
+                }
+                e.preventDefault();
+            });
+        
+            function findSelectedObject(x, y) {
+                "use strict";
+                let offset = 10;
+                for (let i = objects.length - 1; i >= 0; i--) {
+                    const rect = objects[i];
+                    if(rect.width >= 0){
+                        if(rect.height >= 0){
+                            if ( x >= rect.x && x <= rect.x + rect.width + offset && y >= rect.y && y <= rect.y + rect.height + offset ) return rect;
+                        }else{
+                            if ( x >= rect.x && x <= rect.x + rect.width + offset && y <= rect.y && y >= rect.y + rect.height - offset ) return rect;
+                        }
+                    }else{
+                        if(rect.height >= 0){
+                            if ( x <= rect.x && x >= rect.x + rect.width - offset && y >= rect.y && y <= rect.y + rect.height + offset ) return rect;
+                        }else{
+                            if ( x <= rect.x && x >= rect.x + rect.width - offset && y <= rect.y && y >= rect.y + rect.height - offset ) return rect;
+                        }
+                    }
+                }
+                return null;
+            }
+        
+            function findBelowObject(rect){
+                "use strict";
+                for (let i = objects.length - 1; i >= 0; i--) {
+                    const object = objects[i];
+                    if(object.id != rect.id){
+                        if ( 
+                            rect.x + rect.width > object.x && rect.x < object.x + object.width && rect.y + rect.height > object.y && rect.y < object.y + object.height
+                         ) {
+                            return object;
+                        }
+                        if ( 
+                            object.x + object.width > rect.x && object.x < rect.x + rect.width && object.y + object.height > rect.y && object.y < rect.y + rect.height
+                         ) {
+                            return object;
+                        }
+                    }
+                }
+                return null;
+            }
+        
+            function clearRectangle(rect){
+                "use strict";
+                if(rect.width < 0){
+                    if(rect.height >= 0){
+                        ctx.clearRect(rect.x + rect.width, rect.y, rect.x, rect.y + rect.height);
+                    }else{
+                        ctx.clearRect(rect.x + rect.width, rect.y + rect.height, rect.x, rect.y);
+                    }
+                }else{
+                    if(rect.height >= 0){
+                        ctx.clearRect(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
+                    }else{
+                        ctx.clearRect(rect.x, rect.y + rect.height, rect.x + rect.width, rect.y);
+                    }
+                }
+            }
+        
+            function resizeRect(rect, mouseX, mouseY) {
+                "use strict";
+                clearRectangle(rect);
+        
+                if(continuosOptions.includes(selectOption.value)){ 
+                    rect.gridXfin += mouseX - lastMouseX; 
+                    rect.gridYfin += mouseY - lastMouseY; 
+                    rect.gxf += mouseX - lastMouseX; 
+                    rect.gyf += mouseY - lastMouseY; 
+                    rect.width += mouseX - lastMouseX; 
+                    rect.height += mouseY - lastMouseY; 
+                }else{ 
+                    rect.gridXfin += mouseX - lastMouseX; 
+                    rect.gridYfin += mouseY - lastMouseY; 
+                    rect.width += mouseX - lastMouseX; 
+                    rect.height += mouseY - lastMouseY; 
+                }
+                drawRectanglePerimeter(rect);
+            }
+        
+            function dragView(rect, mouseX, mouseY){
+                "use strict";
+                clearRectangle(rect);
+                rect.offsetViewX += mouseX - lastMouseX;
+                rect.offsetViewY += mouseY - lastMouseY;
+                drawRectanglePerimeter(rect);
+            }
+        
+            function dragRectangle(rect, mouseX, mouseY){
+                "use strict";
+                let dx = mouseX - lastMouseX;
+                let dy = mouseY - lastMouseY;
+                clearRectangle(rect);
+                rect.moveRect(dx, dy);
+                drawRectanglePerimeter(rect);
+            }
+        
+            function zoomView(rect, delta){
+                "use strict";
+                clearRectangle(selectedRect);
+                const scale = delta > 0 ? -1 : 1;
+                selectedRect.zoom(scale);
+                drawRectanglePerimeter(rect);
+            }
+        
+            var contatore = 0;
+            canvas.addEventListener("mousemove", (e) => {
+                const mouseX = e.clientX - canvas.getBoundingClientRect().left;
+                const mouseY = e.clientY - canvas.getBoundingClientRect().top;
+                
+                if (isDragging) {
+                    if (selectedRect) {
+                        dragRectangle(selectedRect, mouseX, mouseY);
+                    }
+                } else if (isDraggingView) {
+                    if (selectedRect) {
+                        dragView(selectedRect, mouseX, mouseY);
+                    }
+                    
+                }else if(isResizingBottomRight){
+                    if(selectedRect){
+                        resizeRect(selectedRect, mouseX, mouseY);
+                    }
+                    
+                }
+                lastMouseX = mouseX;
+                lastMouseY = mouseY;
+                e.preventDefault();
+            });
+        
+            canvas.addEventListener("mouseup", () => {
+                isDragging = false;
+                isDraggingView = false;
+                isResizingBottomRight = false;
+                selectedRect = findSelectedObject(lastMouseX, lastMouseY);
+                if(selectedRect){
+                    drawRectangle(selectedRect);
+                }
+            });
+        
+            canvas.addEventListener("wheel", (e) => {
+                clearTimeout(timer);
+                if (selectedRect) {
+                    zoomView(selectedRect, e.deltaY);
+                    timer = setTimeout(function() {drawRectangle(selectedRect);}, 300);
+                }
+                e.preventDefault();
+            });
+        
+            canvas.addEventListener("contextmenu", (e) => {
+                e.preventDefault();
+            });
+        </script>
+    </html>
